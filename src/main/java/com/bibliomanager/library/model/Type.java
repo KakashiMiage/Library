@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name = "type")
 public class Type {
 
     @Id
@@ -24,7 +25,6 @@ public class Type {
     @JsonIgnore
     List<Genre> genres;
 
-    // Constructeurs
     public Type() {
     }
 
@@ -32,7 +32,6 @@ public class Type {
         this.typeName = typeName;
     }
 
-    // Getters et Setters
     public Long getTypeId() {
         return typeId;
     }

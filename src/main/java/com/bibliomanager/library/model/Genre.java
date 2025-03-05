@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name = "genre")
 public class Genre {
 
     @Id
@@ -20,7 +21,6 @@ public class Genre {
     @JoinTable(name = "type_genre", joinColumns = {@JoinColumn(name = "genre_id")}, inverseJoinColumns = {@JoinColumn(name = "type_id")})
     public List<Type> types;
 
-    // Constructeurs
     public Genre() {
     }
 
@@ -28,7 +28,6 @@ public class Genre {
         this.genreName = genreName;
     }
 
-    // Getters et Setters
     public Long getGenreId() {
         return genreId;
     }

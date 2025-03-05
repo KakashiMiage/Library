@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
+@Table(name = "book")
 public class Book {
 
     @Id
@@ -42,7 +43,6 @@ public class Book {
     @Column(nullable = false)
     private int numberOfPages;
 
-    // Constructeurs
     public Book() {
     }
 
@@ -57,7 +57,6 @@ public class Book {
         this.numberOfPages = numberOfPages;
     }
 
-    // Getters et Setters
     public Long getIsbn() {
         return isbn;
     }

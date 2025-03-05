@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name = "editor")
 public class Editor {
 
     @Id
@@ -23,7 +24,6 @@ public class Editor {
     @OneToMany(mappedBy = "editor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Book> books;
 
-    // Constructeurs
     public Editor() {
     }
 
@@ -33,7 +33,6 @@ public class Editor {
         this.editorType = editorType;
     }
 
-    // Getters et Setters
     public Long getEditorId() {
         return editorId;
     }

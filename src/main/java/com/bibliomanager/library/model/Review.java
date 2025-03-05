@@ -3,6 +3,7 @@ package com.bibliomanager.library.model;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "review")
 public class Review {
 
     @Id
@@ -23,7 +24,6 @@ public class Review {
     @Column(columnDefinition = "TEXT")
     private String reviewDescription;
 
-    // Constructeurs
     public Review() {
     }
 
@@ -34,7 +34,6 @@ public class Review {
         this.reviewDescription = reviewDescription;
     }
 
-    // Getters et Setters
     public Long getReviewId() {
         return reviewId;
     }
