@@ -3,12 +3,14 @@ package com.bibliomanager.library.repository;
 import com.bibliomanager.library.model.Reader;
 import org.springframework.stereotype.Repository;
 
-@Repository
-/*
- @Repository: repository in the persistence layer and makes it eligible for Spring’s exception translation mechanism.
+import java.util.List;
+import java.util.Optional;
 
-*/
-public interface ReaderRepository extends CrudRepository<Reader, Integer> {
+@Repository
+public interface ReaderRepository extends CrudRepository<Reader, Long> {
+
+    Optional<Reader> findByReaderUsername(String readerUsername);
+
+    List<Reader> findByReaderName(String readerName);
 
 }
-
