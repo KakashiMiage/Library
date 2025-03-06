@@ -2,6 +2,7 @@ package com.bibliomanager.library.controller;
 
 import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.model.Genre;
+import com.bibliomanager.library.model.Type;
 import com.bibliomanager.library.service.GenreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -41,9 +42,9 @@ public class GenreController {
     }
 
     @PutMapping("/genres/{id}")
-    public ResponseEntity<Void> updateGenre(@PathVariable Integer id, @RequestParam String genreName) {
-        this.genreService.updateGenre(id, genreName);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Genre> updateGenre(@PathVariable Integer id, @RequestBody Genre updatedGenre) {
+        Genre genre = this.genreService.updateGenre(id, updatedGenre);
+        return (genre != null) ? ResponseEntity.ok(genre) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/genres/{id}")

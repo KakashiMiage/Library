@@ -32,8 +32,12 @@ public class GenreService {
         return this.genreRepository.findGenreByName(genreName);
     }
 
-    public void updateGenre(Integer genreId, String genreName) {
-        this.genreRepository.updateGenre(genreId, genreName);
+    public Genre updateGenre(Integer genreId, Genre updatedGenre) {
+        if (genreRepository.existsById(genreId)) {
+            updatedGenre.setGenreId(genreId);
+            return genreRepository.save(updatedGenre);
+        }
+        return null;
     }
 
     public void deleteGenre(Integer genreId) {

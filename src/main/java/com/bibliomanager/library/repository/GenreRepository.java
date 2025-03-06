@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 
@@ -19,9 +18,6 @@ public interface GenreRepository extends CrudRepository<Genre, Integer> {
 
     @Query(value = "SELECT g FROM Genre g WHERE g.genreName = :genreName")
     List<Genre> findGenreByName(@Param("genreName") String genreName);
-
-    @Query(value = "UPDATE Genre g SET g.genreName = :genreName WHERE g.genreId = :genreId")
-    void updateGenre(@Param("genreId") Integer genreId, @Param("genreName") String genreName);
 
     @Query(value = "SELECT b FROM Book b WHERE b.genre.genreId = :genreId")
     List<Book> getBooksByGenre(@Param("genreId") String genreId);

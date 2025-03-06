@@ -1,6 +1,6 @@
 package com.bibliomanager.library.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -10,7 +10,7 @@ public class Type {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long typeId;
+    private Integer typeId;
 
     @Column(nullable = false, unique = true)
     private String typeName;
@@ -19,11 +19,11 @@ public class Type {
     private List<Book> books;
 
     @OneToMany(mappedBy = "editorType", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Editor> editors;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE}, mappedBy = "types")
-    @JsonIgnore
-    List<Genre> genres;
+    private List<Genre> genres;
 
     public Type() {
     }
@@ -32,11 +32,11 @@ public class Type {
         this.typeName = typeName;
     }
 
-    public Long getTypeId() {
+    public Integer getTypeId() {
         return typeId;
     }
 
-    public void setTypeId(Long typeId) {
+    public void setTypeId(Integer typeId) {
         this.typeId = typeId;
     }
 

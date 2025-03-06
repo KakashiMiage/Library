@@ -1,5 +1,7 @@
 package com.bibliomanager.library.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -9,7 +11,7 @@ public class Editor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long editorId;
+    private Integer editorId;
 
     @Column(nullable = false, unique = true)
     private String editorName;
@@ -19,6 +21,7 @@ public class Editor {
 
     @ManyToOne
     @JoinColumn(name = "type_id", nullable = false)
+    @JsonBackReference
     private Type editorType;
 
     @OneToMany(mappedBy = "editor", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -33,11 +36,11 @@ public class Editor {
         this.editorType = editorType;
     }
 
-    public Long getEditorId() {
+    public Integer getEditorId() {
         return editorId;
     }
 
-    public void setEditorId(Long editorId) {
+    public void setEditorId(Integer editorId) {
         this.editorId = editorId;
     }
 
