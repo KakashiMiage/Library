@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
  @Repository: repository in the persistence layer and makes it eligible for Spring’s exception translation mechanism.
 
 */
-public interface AuthorRepository extends CrudRepository<Author, Integer> {
+public interface AuthorRepository extends CrudRepository<Author, Long> {
 
 }
 

@@ -1,5 +1,6 @@
 package com.bibliomanager.library.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -14,6 +15,7 @@ public class Genre {
     @Column(nullable = false, unique = true)
     private String genreName;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "genre", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Book> books;
 

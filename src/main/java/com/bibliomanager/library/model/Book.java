@@ -1,5 +1,6 @@
 package com.bibliomanager.library.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
@@ -37,6 +38,7 @@ public class Book {
     @Column(columnDefinition = "TEXT")
     private String bookDescription;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> bookReviews;
 
