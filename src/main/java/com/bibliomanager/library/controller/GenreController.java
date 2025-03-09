@@ -2,7 +2,6 @@ package com.bibliomanager.library.controller;
 
 import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.model.Genre;
-import com.bibliomanager.library.model.Type;
 import com.bibliomanager.library.service.GenreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@RequestMapping("/api")
 public class GenreController {
 
     @Autowired
@@ -32,7 +32,7 @@ public class GenreController {
     }
 
     @GetMapping("/genres/{id}")
-    public ResponseEntity<Optional<Genre>> getGenreById(@PathVariable Integer id) {
+    public ResponseEntity<Optional<Genre>> getGenreById(@PathVariable Long id) {
         return ResponseEntity.ok(this.genreService.getGenreById(id));
     }
 
@@ -42,13 +42,13 @@ public class GenreController {
     }
 
     @PutMapping("/genres/{id}")
-    public ResponseEntity<Genre> updateGenre(@PathVariable Integer id, @RequestBody Genre updatedGenre) {
+    public ResponseEntity<Genre> updateGenre(@PathVariable Long id, @RequestBody Genre updatedGenre) {
         Genre genre = this.genreService.updateGenre(id, updatedGenre);
         return (genre != null) ? ResponseEntity.ok(genre) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/genres/{id}")
-    public ResponseEntity<Void> deleteGenre(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteGenre(@PathVariable Long id) {
         this.genreService.deleteGenre(id);
         return ResponseEntity.noContent().build();
     }
@@ -59,7 +59,7 @@ public class GenreController {
     }
 
     @GetMapping("/genres/{id}/books")
-    public ResponseEntity<List<Book>> getBooksByGenre(@PathVariable Integer id) {
+    public ResponseEntity<List<Book>> getBooksByGenre(@PathVariable Long id) {
         return ResponseEntity.ok(this.genreService.getBooksByGenre(id));
     }
 }

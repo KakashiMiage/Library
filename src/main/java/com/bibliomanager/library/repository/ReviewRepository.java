@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface ReviewRepository extends CrudRepository<Review, Long> {
 
-    List<Review> findByReader_ReaderId(Long readerId);
+    List<Review> findByUser_UserId(Long userId);
 
     List<Review> findByBook_Isbn(Long isbn);
 

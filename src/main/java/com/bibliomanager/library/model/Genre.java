@@ -2,15 +2,20 @@ package com.bibliomanager.library.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 @Entity
 @Table(name = "genre")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Genre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer genreId;
+    private Long genreId;
 
     @Column(nullable = false, unique = true)
     private String genreName;
@@ -23,18 +28,11 @@ public class Genre {
     @JoinTable(name = "type_genre", joinColumns = {@JoinColumn(name = "genre_id")}, inverseJoinColumns = {@JoinColumn(name = "type_id")})
     public List<Type> types;
 
-    public Genre() {
-    }
-
-    public Genre(String genreName) {
-        this.genreName = genreName;
-    }
-
-    public Integer getGenreId() {
+    public Long getGenreId() {
         return genreId;
     }
 
-    public void setGenreId(Integer genreId) {
+    public void setGenreId(Long genreId) {
         this.genreId = genreId;
     }
 

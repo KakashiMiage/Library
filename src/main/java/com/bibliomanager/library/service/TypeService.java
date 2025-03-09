@@ -33,11 +33,11 @@ public class TypeService {
         return this.typeRepository.save(type);
     }
 
-    public Optional<Type> getTypeById(Integer typeId) {
+    public Optional<Type> getTypeById(Long typeId) {
         return this.typeRepository.findById(typeId);
     }
 
-    public Type updateType(Integer typeId, Type updatedType) {
+    public Type updateType(Long typeId, Type updatedType) {
         if (typeRepository.existsById(typeId)) {
             updatedType.setTypeId(typeId);
             return typeRepository.save(updatedType);
@@ -45,7 +45,7 @@ public class TypeService {
         return null;
     }
 
-    public void deleteType(Integer typeId) {
+    public void deleteType(Long typeId) {
         this.typeRepository.deleteById(typeId);
     }
 

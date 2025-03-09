@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@RequestMapping("/api")
 public class EditorController {
 
     @Autowired
@@ -44,29 +45,29 @@ public class EditorController {
     }
 
     @GetMapping("/editors/{id}")
-    public ResponseEntity<Optional<Editor>> getEditorById(@PathVariable Integer id) {
+    public ResponseEntity<Optional<Editor>> getEditorById(@PathVariable Long id) {
         return ResponseEntity.ok(this.editorService.getEditorById(id));
     }
     
     @PutMapping("/editors/{id}")
-    public ResponseEntity<Editor> updateEditor(@PathVariable Integer id, @RequestBody Editor updatedEditor) {
+    public ResponseEntity<Editor> updateEditor(@PathVariable Long id, @RequestBody Editor updatedEditor) {
         Editor editor = this.editorService.updateEditor(id, updatedEditor);
         return (editor != null) ? ResponseEntity.ok(editor) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/editors/{id}")
-    public ResponseEntity<Void> deleteEditor(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteEditor(@PathVariable Long id) {
         this.editorService.deleteEditor(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/editors/type/{typeId}")
-    public ResponseEntity<List<Editor>> getEditorsByType(@PathVariable Integer typeId) {
+    public ResponseEntity<List<Editor>> getEditorsByType(@PathVariable Long typeId) {
         return ResponseEntity.ok(this.editorService.getEditorsByType(typeId));
     }
 
     @GetMapping("/editors/{id}/books")
-    public ResponseEntity<List<Book>> getBooksByEditor(@PathVariable Integer id) {
+    public ResponseEntity<List<Book>> getBooksByEditor(@PathVariable Long id) {
         return ResponseEntity.ok(this.editorService.getBooksByEditor(id));
     }
 

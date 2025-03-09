@@ -1,11 +1,17 @@
 package com.bibliomanager.library.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 @Entity
 @Table(name = "editor")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Editor {
 
     @Id
@@ -20,20 +26,12 @@ public class Editor {
 
     @ManyToOne
     @JoinColumn(name = "type_id", nullable = false)
+    @JsonBackReference
     private Type editorType;
 
     @JsonIgnore
     @OneToMany(mappedBy = "editor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Book> books;
-
-    public Editor() {
-    }
-
-    public Editor(String editorName, Double editorSIRET, Type editorType) {
-        this.editorName = editorName;
-        this.editorSIRET = editorSIRET;
-        this.editorType = editorType;
-    }
 
     public Long getEditorId() {
         return editorId;

@@ -41,18 +41,18 @@ public class TypeController {
     }
 
     @GetMapping("/types/{id}")
-    public ResponseEntity<Optional<Type>> getTypeById(@PathVariable Integer id) {
+    public ResponseEntity<Optional<Type>> getTypeById(@PathVariable Long id) {
         return ResponseEntity.ok(this.typeService.getTypeById(id));
     }
 
     @PutMapping("/types/{id}")
-    public ResponseEntity<Type> updateType(@PathVariable Integer id, @RequestBody Type updatedType) {
+    public ResponseEntity<Type> updateType(@PathVariable Long id, @RequestBody Type updatedType) {
         Type type = this.typeService.updateType(id, updatedType);
         return (type != null) ? ResponseEntity.ok(type) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/types/{id}")
-    public ResponseEntity<Void> deleteType(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteType(@PathVariable Long id) {
         this.typeService.deleteType(id);
         return ResponseEntity.noContent().build();
     }

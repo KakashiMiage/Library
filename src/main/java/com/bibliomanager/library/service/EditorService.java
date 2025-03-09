@@ -32,11 +32,11 @@ public class EditorService {
         return this.editorRepository.save(editor);
     }
 
-    public Optional<Editor> getEditorById(Integer editorId) {
+    public Optional<Editor> getEditorById(Long editorId) {
         return this.editorRepository.findById(editorId);
     }
 
-    public Editor updateEditor(Integer editorId, Editor updatedEditor) {
+    public Editor updateEditor(Long editorId, Editor updatedEditor) {
         if (editorRepository.existsById(editorId)) {
             updatedEditor.setEditorId(editorId);
             return editorRepository.save(updatedEditor);
@@ -44,15 +44,15 @@ public class EditorService {
         return null;
     }
 
-    public void deleteEditor(Integer editorId) {
+    public void deleteEditor(Long editorId) {
         this.editorRepository.deleteById(editorId);
     }
 
-    public List<Editor> getEditorsByType(Integer typeId) {
+    public List<Editor> getEditorsByType(Long typeId) {
         return this.editorRepository.getEditorsByType(typeId);
     }
 
-    public List<Book> getBooksByEditor(Integer editorId) {
+    public List<Book> getBooksByEditor(Long editorId) {
         return this.editorRepository.getBooksByEditor(editorId);
     }
 

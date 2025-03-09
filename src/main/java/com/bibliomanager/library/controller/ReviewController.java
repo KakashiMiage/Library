@@ -2,6 +2,7 @@ package com.bibliomanager.library.controller;
 
 import com.bibliomanager.library.model.Review;
 import com.bibliomanager.library.service.ReviewService;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +29,9 @@ public class ReviewController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/reader/{readerId}")
-    public List<Review> getReviewsByReader(@PathVariable Long readerId) {
-        return reviewService.getReviewsByReader(readerId);
+    @GetMapping("/user/{userId}")
+    public List<Review> getReviewsByUser(@PathVariable Long userId) {
+        return reviewService.getReviewsByUser(userId);
     }
 
     @GetMapping("/book/{bookId}")
@@ -38,11 +39,13 @@ public class ReviewController {
         return reviewService.getReviewsByBook(bookId);
     }
 
+    @RolesAllowed("ROLE_READER")
     @PostMapping
     public Review createReview(@RequestBody Review review) {
         return reviewService.createReview(review);
     }
 
+    @RolesAllowed("ROLE_READER")
     @PutMapping("/{id}")
     public ResponseEntity<Review> updateReview(@PathVariable Long id, @RequestBody Review updatedReview) {
         try {

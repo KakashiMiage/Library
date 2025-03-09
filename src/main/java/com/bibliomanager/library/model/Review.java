@@ -3,6 +3,7 @@ package com.bibliomanager.library.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "review")
@@ -21,14 +22,14 @@ public class Review {
     private String reviewDescription;
 
     @ManyToOne
-    @JoinColumn(name = "reader_id", nullable = false)
-    private Reader reader;
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    // Getters
     public Long getReviewId() {
         return reviewId;
     }
@@ -41,15 +42,14 @@ public class Review {
         return reviewDescription;
     }
 
-    public Reader getReader() {
-        return reader;
+    public User getUser() {
+        return user;
     }
 
     public Book getBook() {
         return book;
     }
 
-    // Setters
     public void setReviewId(Long reviewId) {
         this.reviewId = reviewId;
     }
@@ -62,8 +62,8 @@ public class Review {
         this.reviewDescription = reviewDescription;
     }
 
-    public void setReader(Reader reader) {
-        this.reader = reader;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public void setBook(Book book) {

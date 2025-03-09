@@ -44,7 +44,7 @@ public class AuthorView implements Serializable {
 
     public void deleteAuthor(Long authorId) {
         authorService.deleteAuthor(authorId);
-        authors = authorService.findAllAuthors(); // Refresh list after deletion
+        authors = authorService.findAllAuthors();
         FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Author deleted", "ID: " + authorId);
         FacesContext.getCurrentInstance().addMessage(null, msg);
     }

@@ -24,7 +24,7 @@ public class GenreService {
         return this.genreRepository.save(genre);
     }
 
-    public Optional<Genre> getGenreById(Integer genreId) {
+    public Optional<Genre> getGenreById(Long genreId) {
         return this.genreRepository.findById(genreId);
     }
 
@@ -32,7 +32,7 @@ public class GenreService {
         return this.genreRepository.findGenreByName(genreName);
     }
 
-    public Genre updateGenre(Integer genreId, Genre updatedGenre) {
+    public Genre updateGenre(Long genreId, Genre updatedGenre) {
         if (genreRepository.existsById(genreId)) {
             updatedGenre.setGenreId(genreId);
             return genreRepository.save(updatedGenre);
@@ -40,7 +40,7 @@ public class GenreService {
         return null;
     }
 
-    public void deleteGenre(Integer genreId) {
+    public void deleteGenre(Long genreId) {
         this.genreRepository.deleteById(genreId);
     }
 
@@ -48,7 +48,7 @@ public class GenreService {
         return this.genreRepository.countGenres();
     }
 
-    public List<Book> getBooksByGenre(Integer genreId) {
+    public List<Book> getBooksByGenre(Long genreId) {
         return this.genreRepository.getBooksByGenre(String.valueOf(genreId));
     }
 }

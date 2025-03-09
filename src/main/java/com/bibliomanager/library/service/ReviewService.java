@@ -22,8 +22,8 @@ public class ReviewService {
         return reviewRepository.findById(id);
     }
 
-    public List<Review> getReviewsByReader(Long readerId) {
-        return reviewRepository.findByReader_ReaderId(readerId);
+    public List<Review> getReviewsByUser(Long userId) {
+        return reviewRepository.findByUser_UserId(userId);
     }
 
     public List<Review> getReviewsByBook(Long isbn) {

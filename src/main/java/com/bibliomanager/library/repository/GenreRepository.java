@@ -11,7 +11,7 @@ import java.util.List;
 import org.springframework.data.repository.CrudRepository;
 
 @Repository
-public interface GenreRepository extends CrudRepository<Genre, Integer> {
+public interface GenreRepository extends CrudRepository<Genre, Long> {
 
     @Query(value = "SELECT COUNT(g) FROM Genre g")
     long countGenres();

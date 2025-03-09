@@ -22,10 +22,10 @@ public interface EditorRepository extends CrudRepository<Editor, Long> {
     List<Editor> findEditorByName(@Param("editorName") String editorName);
 
     @Query("SELECT e FROM Editor e WHERE e.editorType.id = :typeId")
-    List<Editor> getEditorsByType(@Param("typeId") Integer typeId);
+    List<Editor> getEditorsByType(@Param("typeId") Long typeId);
 
     @Query("SELECT b FROM Book b WHERE b.editor.editorId = :editorId")
-    List<Book> getBooksByEditor(@Param("editorId") Integer editorId);
+    List<Book> getBooksByEditor(@Param("editorId") Long editorId);
 
     @Query("SELECT e FROM Editor e WHERE LOWER(e.editorName) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Editor> searchEditors(@Param("keyword") String keyword);
