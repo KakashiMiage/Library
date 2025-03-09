@@ -15,9 +15,11 @@ public class Type {
     @Column(nullable = false, unique = true)
     private String typeName;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "type", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Book> books;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "editorType", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Editor> editors;

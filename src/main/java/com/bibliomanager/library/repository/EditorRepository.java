@@ -13,7 +13,7 @@ import java.util.List;
  @Repository: repository in the persistence layer and makes it eligible for Spring’s exception translation mechanism.
 
 */
-public interface EditorRepository extends CrudRepository<Editor, Integer> {
+public interface EditorRepository extends CrudRepository<Editor, Long> {
 
     @Query("SELECT COUNT(e) FROM Editor e")
     long countEditors();

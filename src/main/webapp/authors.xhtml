@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Liste des Auteurs</title>
+    <h:outputStylesheet name="styles.css"/>
+</h:head>
+<h:body>
+<h:form id="authorForm">
+    <p:dataTable value="#{authorView.authors}" var="author" styleClass="table">
+        <p:column headerText="ID">
+            <h:outputText value="#{author.authorId}"/>
+        </p:column>
+        <p:column headerText="Prénom">
+            <h:outputText value="#{author.authorFirstName}"/>
+        </p:column>
+        <p:column headerText="Nom">
+            <h:outputText value="#{author.authorLastName}"/>
+        </p:column>
+        <p:column headerText="Actions">
+            <p:commandButton value="Supprimer"
+                             icon="pi pi-trash"
+                             styleClass="ui-button-danger"
+                             actionListener="#{authorView.setSelectedAuthor(author)}"
+                             oncomplete="PF('deleteDialog').show()"/>
+        </p:column>
+    </p:dataTable>
+</h:form>
+
+<!-- Popup de confirmation -->
+<p:dialog header="Confirmation" widgetVar="deleteDialog" modal="true" showEffect="fade">
+    <h:form>
+        <p:outputLabel value="Voulez-vous vraiment supprimer cet auteur ?"/>
+        <br/><br/>
+        <p:commandButton value="Oui"
+                         icon="pi pi-check"
+                         action="#{authorView.deleteAuthor(authorView.selectedAuthor.authorId)}"
+                         update="authorForm"
+                         oncomplete="PF('deleteDialog').hide()"/>
+        <p:commandButton value="Non" icon="pi pi-times" onclick="PF('deleteDialog').hide()" type="button"/>
+    </h:form>
+</p:dialog>
+</h:body>
+</html>
