@@ -25,21 +25,29 @@ public class BookService {
     private final GenreRepository genreRepository;
 
     @Autowired
+    private final AuthService authService;
+
+    @Autowired
     public BookService(
             BookRepository bookRepository,
             AuthorRepository authorRepository,
             EditorRepository editorRepository,
             TypeRepository typeRepository,
-            GenreRepository genreRepository
+            GenreRepository genreRepository,
+            AuthService authService
     ) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
         this.editorRepository = editorRepository;
         this.typeRepository = typeRepository;
         this.genreRepository = genreRepository;
+        this.authService = authService;
     }
 
     public Book createBook(Book book) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         // Vérifier si l'auteur existe déjà en base
         Author author = authorRepository.findById(book.getAuthor().getAuthorId())
                 .orElseThrow(() -> new EntityNotFoundException("Author not found with id " + book.getAuthor().getAuthorId()));
@@ -67,14 +75,23 @@ public class BookService {
     }
 
     public List<Book> findAllBooks() {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return (List<Book>) bookRepository.findAll();
     }
 
     public Book getBookById(Long bookId) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
     }
 
     public Book update(Long bookId, Book updatedBook) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         // Récupérer le livre existant en base
         Book existingBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book not found with id " + bookId));
@@ -110,42 +127,72 @@ public class BookService {
     }
 
     public void deleteBook(Long bookId) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         bookRepository.deleteById(bookId);
     }
 
     public List<Book> findBooksByTitle(String title) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.findByBookTitleContainingIgnoreCase(title);
     }
 
     public long countBooks() {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.count();
     }
 
     public List<Book> getBooksByAuthor(Long authorId) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.findByAuthorId(authorId);
     }
 
     public List<Book> getBooksByGenre(Long genreId) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.findByGenreId(genreId);
     }
 
     public List<Book> getBooksByEditor(Long editorId) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.findByEditorId(editorId);
     }
 
     public List<Book> getBooksByType(Long typeId) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.findByTypeId(typeId);
     }
 
     public List<Book> searchBooks(String keyword) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.findByBookTitleContainingIgnoreCase(keyword);
     }
 
     public List<Book> getBooksWithReviews() {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.findByBookReviewsIsNotEmpty();
     }
 
     public List<Book> getTopRatedBooks(int minRating) {
+        if (!authService.isLoggedIn()) {
+            throw new RuntimeException("You need to be logged");
+        }
         return bookRepository.findByBookReviewsRatingGreaterThanEqual(minRating);
     }
 }

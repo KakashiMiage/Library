@@ -2,13 +2,11 @@ package com.bibliomanager.library.controller;
 
 import com.bibliomanager.library.model.Review;
 import com.bibliomanager.library.service.ReviewService;
-import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -39,13 +37,11 @@ public class ReviewController {
         return reviewService.getReviewsByBook(bookId);
     }
 
-    @RolesAllowed("ROLE_READER")
     @PostMapping
     public Review createReview(@RequestBody Review review) {
         return reviewService.createReview(review);
     }
 
-    @RolesAllowed("ROLE_READER")
     @PutMapping("/{id}")
     public ResponseEntity<Review> updateReview(@PathVariable Long id, @RequestBody Review updatedReview) {
         try {

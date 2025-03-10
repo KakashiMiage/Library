@@ -2,64 +2,65 @@ package com.bibliomanager.library.service;
 
 import com.bibliomanager.library.model.User;
 import com.bibliomanager.library.repository.UserRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class AuthService {
 
-    private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256); // ✅ Génère une clé sécurisée
+    private final UserRepository userRepository;
+    private static String currentUser = null;
+    private static String currentUserRole = null;
 
-    private static final long EXPIRATION_TIME = 7200 * 1000;
+    public AuthService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
-    @Autowired
-    private UserRepository userRepository;
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                hexString.append(String.format("%02x", b));
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Erreur de hachage du mot de passe", e);
+        }
+    }
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    public String connect(String username, String password) {
-        Optional<User> userRepo = userRepository.findByUserUsername(username);
-        if (userRepo.isPresent()) {
-            User user = userRepo.get();
-            if (passwordEncoder.matches(password, user.getUserPassword())) {
-                return generateToken(user);
+    public boolean login(String username, String password) {
+        Optional<User> userOpt = userRepository.findByUserUsername(username);
+        if (userOpt.isPresent()) {
+            String hashedPassword = hashPassword(password);
+            if (hashedPassword.equals(userOpt.get().getUserPassword())) {
+                currentUser = username;
+                currentUserRole = userOpt.get().getRole().name();
+                return true;
             }
         }
-        throw new RuntimeException("Invalid username or password");
+        return false;
     }
 
-    private String generateToken(User user) {
-        return Jwts.builder()
-                .setSubject(user.getUserUsername())
-                .claim("groups", List.of("ROLE_" + user.getRole().name()))
-                .claim("sessionId", UUID.randomUUID().toString())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SECRET_KEY)
-                .compact();
+    public void logout() {
+        currentUser = null;
+        currentUserRole = null;
     }
 
-    public Claims validateToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public boolean isLoggedIn() {
+        return currentUser != null;
+    }
+
+    public String getCurrentUsername() {
+        return currentUser;
+    }
+
+    public String getCurrentUserRole() {
+        return currentUserRole;
     }
 }
