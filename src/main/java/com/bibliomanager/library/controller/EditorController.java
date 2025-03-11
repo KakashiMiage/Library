@@ -1,17 +1,17 @@
 package com.bibliomanager.library.controller;
 
-import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.model.Editor;
+import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.service.EditorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/editors")
 public class EditorController {
 
     @Autowired
@@ -21,58 +21,60 @@ public class EditorController {
         this.editorService = editorService;
     }
 
-    @GetMapping("/editors")
-    public ResponseEntity<Iterable<Editor>> findAllEditors() {
-        return ResponseEntity.ok(this.editorService.findAllEditors());
+    @GetMapping
+    public ResponseEntity<List<Editor>> getAllEditors() {
+        return ResponseEntity.ok(editorService.findAllEditors());
     }
 
-    @GetMapping("/editors/count")
-    public ResponseEntity<Long> countEditors() {
-        return ResponseEntity.ok(this.editorService.countEditors());
+    @GetMapping("/{id}")
+    public ResponseEntity<Editor> getEditorById(@PathVariable("id") Long editorId) {
+        return ResponseEntity.ok(editorService.getEditorById(editorId));
     }
 
-    @GetMapping("/editors/name/{editorName}")
-    public ResponseEntity<List<Editor>> getEditorByName(@PathVariable String editorName) {
-        return ResponseEntity.ok(this.editorService.getEditorByName(editorName));
-    }
-
-    @PostMapping("/editors")
+    @PostMapping
     public ResponseEntity<Editor> createEditor(@RequestBody Editor editor) {
-        if (editor.getEditorType() == null || editor.getEditorType().getTypeId() == null) {
-            throw new IllegalArgumentException("Editor type cannot be null or this editor doesn't exist");
-        }
-        return ResponseEntity.ok(this.editorService.createEditor(editor));
+        Editor createdEditor = editorService.createEditor(editor);
+        return new ResponseEntity<>(createdEditor, HttpStatus.CREATED);
     }
 
-    @GetMapping("/editors/{id}")
-    public ResponseEntity<Optional<Editor>> getEditorById(@PathVariable Long id) {
-        return ResponseEntity.ok(this.editorService.getEditorById(id));
-    }
-    
-    @PutMapping("/editors/{id}")
-    public ResponseEntity<Editor> updateEditor(@PathVariable Long id, @RequestBody Editor updatedEditor) {
-        Editor editor = this.editorService.updateEditor(id, updatedEditor);
-        return (editor != null) ? ResponseEntity.ok(editor) : ResponseEntity.notFound().build();
+    @PutMapping("/{id}")
+    public ResponseEntity<Editor> updateEditor(@PathVariable("id") Long editorId, @RequestBody Editor editor) {
+        Editor updatedEditor = editorService.updateEditor(editorId, editor);
+        return ResponseEntity.ok(updatedEditor);
     }
 
-    @DeleteMapping("/editors/{id}")
-    public ResponseEntity<Void> deleteEditor(@PathVariable Long id) {
-        this.editorService.deleteEditor(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEditor(@PathVariable("id") Long editorId) {
+        editorService.deleteEditor(editorId);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/editors/type/{typeId}")
-    public ResponseEntity<List<Editor>> getEditorsByType(@PathVariable Long typeId) {
-        return ResponseEntity.ok(this.editorService.getEditorsByType(typeId));
+    @GetMapping("/count")
+    public ResponseEntity<Long> countEditors() {
+        return ResponseEntity.ok(editorService.countEditors());
     }
 
-    @GetMapping("/editors/{id}/books")
-    public ResponseEntity<List<Book>> getBooksByEditor(@PathVariable Long id) {
-        return ResponseEntity.ok(this.editorService.getBooksByEditor(id));
+    @GetMapping("/search/name")
+    public ResponseEntity<Editor> getEditorByName(@RequestParam String name) {
+        Editor editor = editorService.getEditorByName(name);
+        return ResponseEntity.ok(editor);
     }
 
-    @GetMapping("/editors/search")
+    @GetMapping("/search/type/{typeId}")
+    public ResponseEntity<List<Editor>> getEditorsByType(@PathVariable("typeId") Long typeId) {
+        List<Editor> editors = editorService.getEditorsByType(typeId);
+        return ResponseEntity.ok(editors);
+    }
+
+    @GetMapping("/{id}/books")
+    public ResponseEntity<List<Book>> getBooksByEditor(@PathVariable("id") Long editorId) {
+        List<Book> books = editorService.getBooksByEditor(editorId);
+        return ResponseEntity.ok(books);
+    }
+
+    @GetMapping("/search")
     public ResponseEntity<List<Editor>> searchEditors(@RequestParam String keyword) {
-        return ResponseEntity.ok(this.editorService.searchEditors(keyword));
+        List<Editor> editors = editorService.searchEditors(keyword);
+        return ResponseEntity.ok(editors);
     }
 }

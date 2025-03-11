@@ -1,26 +1,25 @@
 package com.bibliomanager.library.repository;
 
-import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.model.Type;
+import com.bibliomanager.library.model.Book;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-/*
- @Repository: repository in the persistence layer and makes it eligible for Spring’s exception translation mechanism.
-
-*/
 public interface TypeRepository extends CrudRepository<Type, Long> {
-    @Query("SELECT COUNT(t) FROM Type t")
-    long countTypes();
 
-    @Query("SELECT t FROM Type t WHERE t.typeName = :typeName")
-    List<Type> findTypeByName(@Param("typeName") String typeName);
+    // Recherche d'un type par son nom (insensible à la casse)
+    Optional<Type> findByTypeNameIgnoreCase(String typeName);
 
+    // Tous les livres d'un type spécifique
     @Query("SELECT b FROM Book b WHERE b.type.typeId = :typeId")
-    List<Book> getBooksByType(@Param("typeId") Long typeId);
-}
+    List<Book> findBooksByType(@Param("typeId") Long typeId);
 
+    // Optionnel : récupérer les types en fonction de leur association avec un genre
+    @Query("SELECT t FROM Type t JOIN t.genres g WHERE g.genreId = :genreId")
+    List<Type> findTypesByGenre(@Param("genreId") Long genreId);
+}

@@ -35,7 +35,7 @@ public class AuthService {
     }
 
     public boolean login(String username, String password) {
-        Optional<User> userOpt = userRepository.findByUserUsername(username);
+        Optional<User> userOpt = userRepository.findByUserUsernameIgnoreCase(username);
         if (userOpt.isPresent()) {
             String hashedPassword = hashPassword(password);
             if (hashedPassword.equals(userOpt.get().getUserPassword())) {
@@ -62,5 +62,9 @@ public class AuthService {
 
     public String getCurrentUserRole() {
         return currentUserRole;
+    }
+
+    public boolean isAdmin() {
+        return false;
     }
 }

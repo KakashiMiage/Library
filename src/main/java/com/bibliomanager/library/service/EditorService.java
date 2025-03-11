@@ -1,94 +1,111 @@
 package com.bibliomanager.library.service;
 
-import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.model.Editor;
+import com.bibliomanager.library.model.Type;
+import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.repository.EditorRepository;
+import com.bibliomanager.library.repository.TypeRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
 
 @Service
 public class EditorService {
+
+    @Autowired
     private final EditorRepository editorRepository;
-    private final AuthService authService;
 
-    public EditorService(EditorRepository editorRepository, AuthService authService) {
+    @Autowired
+    private final TypeRepository typeRepository;
+
+    @Autowired
+    public EditorService(EditorRepository editorRepository, TypeRepository typeRepository) {
         this.editorRepository = editorRepository;
-        this.authService = authService;
+        this.typeRepository = typeRepository;
     }
 
-    public Iterable<Editor> findAllEditors() {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.editorRepository.findAll();
-    }
 
-    public long countEditors() {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.editorRepository.count();
-    }
-
-    public List<Editor> getEditorByName(String editorName) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.editorRepository.findEditorByName(editorName);
-    }
 
     public Editor createEditor(Editor editor) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.editorRepository.save(editor);
-    }
+        List<Type> completeTypes = new ArrayList<>();
 
-    public Optional<Editor> getEditorById(Long editorId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
+        if (editor.getTypes() != null && !editor.getTypes().isEmpty()) {
+            for (Type type : editor.getTypes()) {
+                if (type.getTypeId() == null) {
+                    throw new IllegalArgumentException("Le typeId ne peut pas être null");
+                }
+
+                Type loadedType = typeRepository.findById(type.getTypeId())
+                        .orElseThrow(() -> new EntityNotFoundException("Type non trouvé avec l'id " + type.getTypeId()));
+                completeTypes.add(loadedType);
+            }
         }
-        return this.editorRepository.findById(editorId);
+
+        editor.setTypes(completeTypes);
+        return editorRepository.save(editor);
     }
 
     public Editor updateEditor(Long editorId, Editor updatedEditor) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
+        Editor existingEditor = getEditorById(editorId);
+
+        existingEditor.setEditorName(updatedEditor.getEditorName());
+        existingEditor.setEditorSIRET(updatedEditor.getEditorSIRET());
+
+        List<Type> completeTypes = new ArrayList<>();
+
+        if (updatedEditor.getTypes() != null && !updatedEditor.getTypes().isEmpty()) {
+            for (Type type : updatedEditor.getTypes()) {
+                if (type.getTypeId() == null) {
+                    throw new IllegalArgumentException("Le typeId ne peut pas être null");
+                }
+
+                Type loadedType = typeRepository.findById(type.getTypeId())
+                        .orElseThrow(() -> new EntityNotFoundException("Type non trouvé avec l'id " + type.getTypeId()));
+                completeTypes.add(loadedType);
+            }
         }
-        if (editorRepository.existsById(editorId)) {
-            updatedEditor.setEditorId(editorId);
-            return editorRepository.save(updatedEditor);
-        }
-        return null;
+
+        existingEditor.setTypes(completeTypes);
+
+        return editorRepository.save(existingEditor);
     }
 
     public void deleteEditor(Long editorId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        this.editorRepository.deleteById(editorId);
+        Editor existingEditor = getEditorById(editorId);
+        editorRepository.delete(existingEditor);
+    }
+
+    public List<Editor> findAllEditors() {
+        return (List<Editor>) editorRepository.findAll();
+    }
+
+    public long countEditors() {
+        return editorRepository.count();
+    }
+
+    public Editor getEditorById(Long editorId) {
+        return editorRepository.findById(editorId)
+                .orElseThrow(() -> new EntityNotFoundException("Éditeur introuvable avec l'id " + editorId));
+    }
+
+    public Editor getEditorByName(String editorName) {
+        return editorRepository.findByEditorNameIgnoreCase(editorName)
+                .orElseThrow(() -> new EntityNotFoundException("Éditeur non trouvé avec le nom : " + editorName));
     }
 
     public List<Editor> getEditorsByType(Long typeId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.editorRepository.getEditorsByType(typeId);
+        return editorRepository.findEditorsByType(typeId);
     }
 
     public List<Book> getBooksByEditor(Long editorId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.editorRepository.getBooksByEditor(editorId);
+        getEditorById(editorId);
+        return editorRepository.findBooksByEditor(editorId);
     }
 
     public List<Editor> searchEditors(String keyword) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.editorRepository.searchEditors(keyword);
+        return editorRepository.searchEditors(keyword);
     }
 }

@@ -1,81 +1,74 @@
 package com.bibliomanager.library.service;
 
-import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.model.Type;
+import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.repository.TypeRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TypeService {
 
+    @Autowired
     private final TypeRepository typeRepository;
-    private final AuthService authService;
 
-    public TypeService(TypeRepository typeRepository, AuthService authService) {
+    public TypeService(TypeRepository typeRepository) {
         this.typeRepository = typeRepository;
-        this.authService = authService;
     }
 
-    public Iterable<Type> getAllTypes() {
-        if (!authService.isLoggedIn()) {
-                throw new RuntimeException("You need to be logged");
-        }
-        return this.typeRepository.findAll();
+    // Récupérer tous les types
+    public List<Type> findAllTypes() {
+        return (List<Type>) typeRepository.findAll();
     }
 
+    // Compter les types
     public long countTypes() {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.typeRepository.countTypes();
+        return typeRepository.count();
     }
 
-    public List<Type> findTypeByName(String typeName) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.typeRepository.findTypeByName(typeName);
-    }
-
+    // Créer un type
     public Type createType(Type type) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.typeRepository.save(type);
+        return typeRepository.save(type);
     }
 
-    public Optional<Type> getTypeById(Long typeId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.typeRepository.findById(typeId);
+    // Trouver un type par ID
+    public Type getTypeById(Long typeId) {
+        return typeRepository.findById(typeId)
+                .orElseThrow(() -> new EntityNotFoundException("Type introuvable avec l'id " + typeId));
     }
 
+    // Mettre à jour un type
     public Type updateType(Long typeId, Type updatedType) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        if (typeRepository.existsById(typeId)) {
-            updatedType.setTypeId(typeId);
-            return typeRepository.save(updatedType);
-        }
-        return null;
+        Type existingType = getTypeById(typeId);
+
+        existingType.setTypeName(updatedType.getTypeName());
+
+        return typeRepository.save(existingType);
     }
 
+    // Supprimer un type
     public void deleteType(Long typeId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        this.typeRepository.deleteById(typeId);
+        Type existingType = getTypeById(typeId);
+        typeRepository.delete(existingType);
     }
 
+    // Trouver un type par son nom
+    public Type findTypeByName(String typeName) {
+        return typeRepository.findByTypeNameIgnoreCase(typeName)
+                .orElseThrow(() -> new EntityNotFoundException("Type non trouvé avec le nom : " + typeName));
+    }
+
+    // Récupérer tous les livres d'un type
     public List<Book> getBooksByType(Long typeId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.typeRepository.getBooksByType(typeId);
+        getTypeById(typeId); // Vérifie que le type existe
+        return typeRepository.findBooksByType(typeId);
+    }
+
+    // Optionnel : récupérer les types liés à un genre spécifique
+    public List<Type> getTypesByGenre(Long genreId) {
+        return typeRepository.findTypesByGenre(genreId);
     }
 }

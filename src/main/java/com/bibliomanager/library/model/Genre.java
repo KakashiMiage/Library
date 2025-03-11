@@ -17,17 +17,22 @@ public class Genre {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long genreId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String genreName;
 
+    @ManyToMany(mappedBy = "genres", fetch = FetchType.LAZY)
     @JsonIgnore
-    @OneToMany(mappedBy = "genre", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Book> books;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
-    @JoinTable(name = "type_genre", joinColumns = {@JoinColumn(name = "genre_id")}, inverseJoinColumns = {@JoinColumn(name = "type_id")})
-    public List<Type> types;
+    @JoinTable(
+            name = "type_genre",
+            joinColumns = {@JoinColumn(name = "genre_id")},
+            inverseJoinColumns = {@JoinColumn(name = "type_id")}
+    )
+    private List<Type> types;
 
+    // Getters & Setters
     public Long getGenreId() {
         return genreId;
     }
@@ -50,5 +55,13 @@ public class Genre {
 
     public void setBooks(List<Book> books) {
         this.books = books;
+    }
+
+    public List<Type> getTypes() {
+        return types;
+    }
+
+    public void setTypes(List<Type> types) {
+        this.types = types;
     }
 }

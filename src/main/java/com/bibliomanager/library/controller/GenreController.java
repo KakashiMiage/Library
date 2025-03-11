@@ -1,17 +1,17 @@
 package com.bibliomanager.library.controller;
 
-import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.model.Genre;
+import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.service.GenreService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/genres")
 public class GenreController {
 
     @Autowired
@@ -21,45 +21,48 @@ public class GenreController {
         this.genreService = genreService;
     }
 
-    @GetMapping("/genres")
-    public ResponseEntity<Iterable<Genre>> getAllGenres() {
-        return ResponseEntity.ok(this.genreService.getAllGenres());
+    @GetMapping
+    public ResponseEntity<List<Genre>> getAllGenres() {
+        return ResponseEntity.ok(genreService.getAllGenres());
     }
 
-    @PostMapping("/genres")
-    public ResponseEntity<Genre> addGenre(@RequestBody Genre genre) {
-        return ResponseEntity.ok(this.genreService.addGenre(genre));
+    @GetMapping("/{id}")
+    public ResponseEntity<Genre> getGenreById(@PathVariable("id") Long genreId) {
+        return ResponseEntity.ok(genreService.getGenreById(genreId));
     }
 
-    @GetMapping("/genres/{id}")
-    public ResponseEntity<Optional<Genre>> getGenreById(@PathVariable Long id) {
-        return ResponseEntity.ok(this.genreService.getGenreById(id));
+    @PostMapping
+    public ResponseEntity<Genre> createGenre(@RequestBody Genre genre) {
+        Genre createdGenre = genreService.createGenre(genre);
+        return new ResponseEntity<>(createdGenre, HttpStatus.CREATED);
     }
 
-    @GetMapping("/genres/name/{genreName}")
-    public ResponseEntity<List<Genre>> getGenreByName(@PathVariable String genreName) {
-        return ResponseEntity.ok(this.genreService.getGenreByName(genreName));
+    @PutMapping("/{id}")
+    public ResponseEntity<Genre> updateGenre(@PathVariable("id") Long genreId, @RequestBody Genre genre) {
+        Genre updatedGenre = genreService.updateGenre(genreId, genre);
+        return ResponseEntity.ok(updatedGenre);
     }
 
-    @PutMapping("/genres/{id}")
-    public ResponseEntity<Genre> updateGenre(@PathVariable Long id, @RequestBody Genre updatedGenre) {
-        Genre genre = this.genreService.updateGenre(id, updatedGenre);
-        return (genre != null) ? ResponseEntity.ok(genre) : ResponseEntity.notFound().build();
-    }
-
-    @DeleteMapping("/genres/{id}")
-    public ResponseEntity<Void> deleteGenre(@PathVariable Long id) {
-        this.genreService.deleteGenre(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGenre(@PathVariable("id") Long genreId) {
+        genreService.deleteGenre(genreId);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/genres/count")
+    @GetMapping("/count")
     public ResponseEntity<Long> countGenres() {
-        return ResponseEntity.ok(this.genreService.countGenres());
+        return ResponseEntity.ok(genreService.countGenres());
     }
 
-    @GetMapping("/genres/{id}/books")
-    public ResponseEntity<List<Book>> getBooksByGenre(@PathVariable Long id) {
-        return ResponseEntity.ok(this.genreService.getBooksByGenre(id));
+    @GetMapping("/search")
+    public ResponseEntity<Genre> findGenreByName(@RequestParam String name) {
+        Genre genre = genreService.findGenreByName(name);
+        return ResponseEntity.ok(genre);
+    }
+
+    @GetMapping("/{id}/books")
+    public ResponseEntity<List<Book>> getBooksByGenre(@PathVariable("id") Long genreId) {
+        List<Book> books = genreService.getBooksByGenre(genreId);
+        return ResponseEntity.ok(books);
     }
 }

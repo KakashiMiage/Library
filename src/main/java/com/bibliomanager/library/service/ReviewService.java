@@ -1,93 +1,122 @@
 package com.bibliomanager.library.service;
 
+import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.model.Review;
+import com.bibliomanager.library.model.User;
+import com.bibliomanager.library.repository.BookRepository;
 import com.bibliomanager.library.repository.ReviewRepository;
+import com.bibliomanager.library.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ReviewService {
 
     @Autowired
-    private ReviewRepository reviewRepository;
+    private final ReviewRepository reviewRepository;
 
     @Autowired
-    private AuthService authService;
+    private final BookRepository bookRepository;
 
+    @Autowired
+    private final UserRepository userRepository;
+
+    @Autowired
+    public ReviewService(
+            ReviewRepository reviewRepository,
+            BookRepository bookRepository,
+            UserRepository userRepository
+    ) {
+        this.reviewRepository = reviewRepository;
+        this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
+    }
+
+    // 🔹 Récupérer toutes les reviews
     public List<Review> getAllReviews() {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
         return (List<Review>) reviewRepository.findAll();
     }
 
-    public Optional<Review> getReviewById(Long id) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return reviewRepository.findById(id);
-    }
-
-    public List<Review> getReviewsByUser(Long userId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return reviewRepository.findByUser_UserId(userId);
-    }
-
-    public List<Review> getReviewsByBook(Long isbn) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return reviewRepository.findByBook_Isbn(isbn);
-    }
-
+    // 🔹 Compter le nombre de reviews
     public long countReviews() {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
         return reviewRepository.count();
     }
 
-    public Double getAverageRatingForBook(Long bookId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return reviewRepository.getAverageRatingForBook(bookId);
-    }
-
-    public List<Object[]> getTopRatedBooks(int minRating) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return reviewRepository.getTopRatedBooks(minRating);
-    }
-
+    // 🔹 Créer une review
     public Review createReview(Review review) {
-        if (!authService.isLoggedIn() || !"READER".equals(authService.getCurrentUserRole())) {
-            throw new RuntimeException("You need to have role READER");
-        }
+        // Vérifie que le user existe
+        User user = userRepository.findById(review.getUser().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable avec l'id " + review.getUser().getUserId()));
+
+        // Vérifie que le book existe
+        Book book = bookRepository.findById(review.getBook().getIsbn())
+                .orElseThrow(() -> new EntityNotFoundException("Livre introuvable avec l'id " + review.getBook().getIsbn()));
+
+        review.setUser(user);
+        review.setBook(book);
+
         return reviewRepository.save(review);
     }
 
-    public Review updateReview(Long id, Review updatedReview) {
-        if (!authService.isLoggedIn() || !"READER".equals(authService.getCurrentUserRole())) {
-            throw new RuntimeException("You need to have role READER");
-        }
-        return reviewRepository.findById(id).map(review -> {
-            review.setReviewRate(updatedReview.getReviewRate());
-            review.setReviewDescription(updatedReview.getReviewDescription());
-            return reviewRepository.save(review);
-        }).orElseThrow(() -> new RuntimeException("Review not found"));
+    // 🔹 Trouver une review par ID
+    public Review getReviewById(Long reviewId) {
+        return reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new EntityNotFoundException("Review introuvable avec l'id " + reviewId));
     }
 
-    public void deleteReview(Long id) {
-        if (!authService.isLoggedIn() || !"READER".equals(authService.getCurrentUserRole())) {
-            throw new RuntimeException("You need to have role READER");
+    // 🔹 Mettre à jour une review
+    public Review updateReview(Long reviewId, Review updatedReview) {
+        Review existingReview = getReviewById(reviewId);
+
+        existingReview.setReviewRate(updatedReview.getReviewRate());
+        existingReview.setReviewDescription(updatedReview.getReviewDescription());
+
+        // Optionnel : si tu permets de changer le User/Book d'une review
+        if (updatedReview.getUser() != null) {
+            User user = userRepository.findById(updatedReview.getUser().getUserId())
+                    .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable avec l'id " + updatedReview.getUser().getUserId()));
+            existingReview.setUser(user);
         }
-        reviewRepository.deleteById(id);
+
+        if (updatedReview.getBook() != null) {
+            Book book = bookRepository.findById(updatedReview.getBook().getIsbn())
+                    .orElseThrow(() -> new EntityNotFoundException("Livre introuvable avec l'id " + updatedReview.getBook().getIsbn()));
+            existingReview.setBook(book);
+        }
+
+        return reviewRepository.save(existingReview);
+    }
+
+    // 🔹 Supprimer une review
+    public void deleteReview(Long reviewId) {
+        Review existingReview = getReviewById(reviewId);
+        reviewRepository.delete(existingReview);
+    }
+
+    // 🔹 Récupérer les reviews par livre
+    public List<Review> getReviewsByBook(Long bookId) {
+        return reviewRepository.findByBookIsbn(bookId);
+    }
+
+    // 🔹 Récupérer les reviews par reader/user
+    public List<Review> getReviewsByReader(Long userId) {
+        return reviewRepository.findByUserUserId(userId);
+    }
+
+    // 🔹 Moyenne des ratings pour un livre
+    public Double getAverageRatingForBook(Long bookId) {
+        Double average = reviewRepository.getAverageRatingForBook(bookId);
+        if (average == null) {
+            throw new EntityNotFoundException("Aucune review trouvée pour le livre avec l'id " + bookId);
+        }
+        return average;
+    }
+
+    // 🔹 Livres avec une note moyenne >= minRating
+    public List<?> getTopRatedBooks(int minRating) {
+        return reviewRepository.getTopRatedBooks(minRating);
     }
 }

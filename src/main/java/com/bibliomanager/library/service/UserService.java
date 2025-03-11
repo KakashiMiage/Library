@@ -1,112 +1,124 @@
 package com.bibliomanager.library.service;
 
 import com.bibliomanager.library.model.User;
+import com.bibliomanager.library.model.Book;
+import com.bibliomanager.library.model.Review;
 import com.bibliomanager.library.repository.UserRepository;
-import com.bibliomanager.library.repository.ReviewRepository;
+import com.bibliomanager.library.repository.BookRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
     @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    private ReviewRepository reviewRepository;
+    private final BookRepository bookRepository;
 
-    @Autowired
-    private AuthService authService;
-
-
-    private String hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hash) {
-                hexString.append(String.format("%02x", b));
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Erreur de hachage du mot de passe", e);
-        }
+    public UserService(UserRepository userRepository, BookRepository bookRepository) {
+        this.userRepository = userRepository;
+        this.bookRepository = bookRepository;
     }
 
+    // Récupérer tous les users
     public List<User> getAllUsers() {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
         return (List<User>) userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long id) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return userRepository.findById(id);
-    }
-
-    public Optional<User> getUserByUsername(String username) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return userRepository.findByUserUsername(username);
-    }
-
-    public List<User> getUserByName(String name) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return userRepository.findByUserName(name);
-    }
-
+    // Compter les users
     public long countUsers() {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
         return userRepository.count();
     }
 
-    public List<Long> getBooksReviewedByUser(Long userId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return reviewRepository.findByUser_UserId(userId)
-                .stream()
-                .map(review -> review.getBook().getIsbn())
-                .distinct()
-                .collect(Collectors.toList());
-    }
-
+    // Créer un user
     public User createUser(User user) {
-        user.setUserPassword(hashPassword(user.getUserPassword())); // 🔥 Hachage du mot de passe SHA-256
         return userRepository.save(user);
     }
 
-    public User updateUser(Long id, User updatedUser) {
-        return userRepository.findById(id).map(user -> {
-            user.setUserName(updatedUser.getUserName());
-            user.setUserUsername(updatedUser.getUserUsername());
-            user.setRole(updatedUser.getRole());
-            if (!hashPassword(updatedUser.getUserPassword()).equals(user.getUserPassword())) {
-                user.setUserPassword(hashPassword(updatedUser.getUserPassword()));
-            }
-            return userRepository.save(user);
-        }).orElseThrow(() -> new RuntimeException("User not found"));
+    // Trouver un user par ID
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable avec l'id " + userId));
     }
 
-    public void deleteUser(Long id) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        userRepository.deleteById(id);
+    // Mettre à jour un user
+    public User updateUser(Long userId, User updatedUser) {
+        User existingUser = getUserById(userId);
+
+        existingUser.setUserName(updatedUser.getUserName());
+        existingUser.setUserUsername(updatedUser.getUserUsername());
+        existingUser.setUserPassword(updatedUser.getUserPassword());
+        existingUser.setRole(updatedUser.getRole());
+        existingUser.setFavoriteBooks(updatedUser.getFavoriteBooks());
+
+        return userRepository.save(existingUser);
     }
+
+    // Supprimer un user
+    public void deleteUser(Long userId) {
+        User existingUser = getUserById(userId);
+        userRepository.delete(existingUser);
+    }
+
+    // Trouver un user par son nom
+    public List<User> getUsersByName(String name) {
+        List<User> users = userRepository.findByUserNameIgnoreCase(name);
+        if (users.isEmpty()) {
+            throw new EntityNotFoundException("Aucun utilisateur trouvé avec le nom : " + name);
+        }
+        return users;
+    }
+
+    // Trouver un user par son username (login)
+    public User getUserByUsername(String username) {
+        return userRepository.findByUserUsernameIgnoreCase(username)
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé avec le username : " + username));
+    }
+
+    // Récupérer toutes les reviews laissées par un user
+    public List<Review> getReviewsByUser(Long userId) {
+        getUserById(userId); // Vérifie que l'utilisateur existe
+        return userRepository.findReviewsByUser(userId);
+    }
+
+    // Récupérer tous les livres sur lesquels un user a laissé une review
+    public List<Book> getBooksReviewedByUser(Long userId) {
+        getUserById(userId); // Vérifie que l'utilisateur existe
+        return userRepository.findBooksReviewedByUser(userId);
+    }
+
+    // Ajouter un livre aux favoris d'un utilisateur
+    public User addBookToFavorites(Long userId, Long bookId) {
+        User user = getUserById(userId);
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Livre introuvable avec l'id " + bookId));
+
+        // Ajouter le livre à la liste des favoris
+        user.getFavoriteBooks().add(book);
+
+        return userRepository.save(user);
+    }
+
+    // Retirer un livre des favoris d'un utilisateur
+    public User removeBookFromFavorites(Long userId, Long bookId) {
+        User user = getUserById(userId);
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Livre introuvable avec l'id " + bookId));
+
+        // Retirer le livre des favoris
+        user.getFavoriteBooks().remove(book);
+
+        return userRepository.save(user);
+    }
+
+    public List<Book> getFavoriteBooks(Long userId) {
+        User user = getUserById(userId);  // vérifie que l'utilisateur existe
+        return user.getFavoriteBooks();
+    }
+
 }

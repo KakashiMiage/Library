@@ -1,178 +1,200 @@
 import requests
 import json
+from datetime import datetime
 
-BASE_URL = "http://localhost:8080/books"  # Remplace par l'URL réelle de ton API
+BASE_URL = "http://localhost:8080/api"
 
-def create_book(book_data):
-    """Créer un nouveau livre."""
-    response = requests.post(f"{BASE_URL}", json=book_data)
-    return response.json()
+headers = {
+    "Content-Type": "application/json"
+}
 
-def find_all_books():
-    """Récupérer tous les livres."""
-    response = requests.get(f"{BASE_URL}")
-    return response.json()
+print("==============================")
+print("DÉMARRAGE DES TESTS COMPLETS API BOOK")
+print("==============================\n")
 
-def get_book_by_id(book_id):
-    """Récupérer un livre par son ID."""
-    response = requests.get(f"{BASE_URL}/{book_id}")
-    return response.json()
+# --- Fonction helpers ---
+def print_json(data):
+    print(json.dumps(data, indent=4, ensure_ascii=False))
 
-def update_book(book_id, updated_data):
-    """Mettre à jour un livre."""
-    response = requests.put(f"{BASE_URL}/{book_id}", json=updated_data)
-    return response.json()
+# Création du Type
+print("Création du Type")
+type_payload = {
+    "typeName": "Roman"
+}
+response = requests.post(f"{BASE_URL}/types", headers=headers, json=type_payload)
+print("Status Code:", response.status_code)
+print_json(response.json())
+type_id = response.json().get("typeId")
 
-def delete_book(book_id):
-    """Supprimer un livre."""
-    response = requests.delete(f"{BASE_URL}/{book_id}")
-    return response.status_code
+# Création du Genre
+print("Création du Genre")
+genre_payload = {
+    "genreName": "Aventure"
+}
+response = requests.post(f"{BASE_URL}/genres", headers=headers, json=genre_payload)
+print("Status Code:", response.status_code)
+print_json(response.json())
+genre_id = response.json().get("genreId")
 
-def find_books_by_title(title):
-    """Rechercher des livres par titre."""
-    response = requests.get(f"{BASE_URL}/title/{title}")
-    return response.json()
+# Création de l'Auteur
+print("Création de l'Auteur")
+author_payload = {
+    "authorFirstName": "Albert",
+    "authorLastName": "Camus"
+}
+response = requests.post(f"{BASE_URL}/authors", headers=headers, json=author_payload)
+print("Status Code:", response.status_code)
+print_json(response.json())
+author_id = response.json().get("authorId")
 
-def count_books():
-    """Compter le nombre total de livres."""
-    response = requests.get(f"{BASE_URL}/count")
-    return response.json()
+# Création de l'Éditeur
+print("Création de l'Éditeur")
+editor_payload = {
+    "editorName": "Gallimard",
+    "editorSIRET": 12345678901234,
+    "types": [
+        {"typeId": type_id}
+    ]
+}
+response = requests.post(f"{BASE_URL}/editors", headers=headers, json=editor_payload)
+print("Status Code:", response.status_code)
+print_json(response.json())
+editor_id = response.json().get("editorId")
 
-def get_books_by_author(author_id):
-    """Récupérer les livres d'un auteur spécifique."""
-    response = requests.get(f"{BASE_URL}/author/{author_id}")
-    return response.json()
+# Création d'un Utilisateur pour les Reviews
+print("Création d'un Utilisateur")
+user_payload = {
+    "userName": "Jean Dupont",
+    "userUsername": "jdupont",
+    "userPassword": "password123",
+    "role": "READER"
+}
+response = requests.post(f"{BASE_URL}/users", headers=headers, json=user_payload)
+print("Status Code:", response.status_code)
+print_json(response.json())
+user_id = response.json().get("userId")
 
-def get_books_by_genre(genre_id):
-    """Récupérer les livres d'un genre spécifique."""
-    response = requests.get(f"{BASE_URL}/genre/{genre_id}")
-    return response.json()
+# Création du Book
+print("Création du Book")
+book_payload = {
+    "bookTitle": "L'Étranger",
+    "bookPublicationDate": "1942-06-01",
+    "editor": {"editorId": editor_id},
+    "author": {"authorId": author_id},
+    "type": {"typeId": type_id},
+    "genres": [{"genreId": genre_id}],
+    "bookDescription": "Un classique de la littérature.",
+    "numberOfPages": 123
+}
+response = requests.post(f"{BASE_URL}/books", headers=headers, json=book_payload)
+print("Status Code:", response.status_code)
+print_json(response.json())
+book_id = response.json().get("isbn")
 
-def get_books_by_editor(editor_id):
-    """Récupérer les livres d'un éditeur spécifique."""
-    response = requests.get(f"{BASE_URL}/editor/{editor_id}")
-    return response.json()
+# Création d'une Review sur le Book
+print("Création d'une Review")
+review_payload = {
+    "reviewRate": 5,
+    "reviewDescription": "Excellent livre !",
+    "user": {"userId": user_id},
+    "book": {"isbn": book_id}
+}
+response = requests.post(f"{BASE_URL}/reviews", headers=headers, json=review_payload)
+print("Status Code:", response.status_code)
+print_json(response.json())
+review_id = response.json().get("reviewId")
 
-def get_books_by_type(type_id):
-    """Récupérer les livres d'un type spécifique."""
-    response = requests.get(f"{BASE_URL}/type/{type_id}")
-    return response.json()
+# ----------------------
+# TEST DES ENDPOINTS BOOK
+# ----------------------
 
-def search_books(keyword):
-    """Rechercher des livres par mot-clé."""
-    response = requests.get(f"{BASE_URL}/search", params={"keyword": keyword})
-    return response.json()
+# Récupération de tous les Books
+print("Récupération de tous les Books")
+response = requests.get(f"{BASE_URL}/books")
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-def get_books_with_reviews():
-    """Récupérer les livres ayant des avis."""
-    response = requests.get(f"{BASE_URL}/reviews")
-    return response.json()
+# Récupération d'un Book par ID
+print(f"Récupération du Book ID {book_id}")
+response = requests.get(f"{BASE_URL}/books/{book_id}")
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-def get_top_rated_books(min_rating):
-    """Récupérer les livres ayant une note minimale."""
-    response = requests.get(f"{BASE_URL}/top-rated", params={"minRating": min_rating})
-    return response.json()
+# Mise à jour du Book
+print(f"Mise à jour du Book ID {book_id}")
+update_payload = {
+    "bookTitle": "L'Étranger - Édition Révisée",
+    "bookPublicationDate": "1950-01-01",
+    "editor": {"editorId": editor_id},
+    "author": {"authorId": author_id},
+    "type": {"typeId": type_id},
+    "genres": [{"genreId": genre_id}],
+    "bookDescription": "Une version révisée du classique.",
+    "numberOfPages": 150
+}
+response = requests.put(f"{BASE_URL}/books/{book_id}", headers=headers, json=update_payload)
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-# Test des fonctions
-if __name__ == "__main__":
-    # # Création d'un livre de test
-    # test_book = {
-    #     "bookTitle": "L'Étranger",
-    #     "bookPublicationDate": "1942-06-01",
-    #     "editor": {
-    #         "editorId": 1,
-    #         "editorName": "Gabriel",
-    #         "editorSIRET": 1,
-    #         "typeId": 1
-    #     },
-    #     "author": {
-    #         "authorId": 1,
-    #         "authorFirstName": "Gabriel",
-    #         "authorLastName": "LOPES NEVES"
-    #     },
-    #     "type": {
-    #         "typeId": 1,
-    #         "typeName": "Manga"
-    #     },
-    #     "genre": {
-    #         "genreId": 1,
-    #         "genreName": "Aventure"
-    #     },
-    #     "bookDescription": "Un classique de la littérature.",
-    #     "numberOfPages": 123
-    # }
-    # created_book = create_book(test_book)
-    # print("Livre créé:", json.dumps(created_book, indent=2))
+# Compter tous les Books
+print("Compter tous les Books")
+response = requests.get(f"{BASE_URL}/books/count")
+print("Status Code:", response.status_code)
+print(response.json())
 
-    # # Récupérer tous les livres
-    # books = find_all_books()
-    # print("Liste des livres:", json.dumps(books, indent=2))
+# Recherche par titre
+print("Recherche de Books par titre 'Étranger'")
+response = requests.get(f"{BASE_URL}/books/search/title", params={"title": "Étranger"})
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-    # # Récupérer un livre par ID
-    # books = find_all_books()
-    # if books:
-    #     book_id = books[0]["isbn"]
-    #     book = get_book_by_id(book_id)
-    #     print("Livre trouvé par ID:", book)
+# Recherche par auteur
+print(f"Récupérer les Books par Author ID {author_id}")
+response = requests.get(f"{BASE_URL}/books/search/author/{author_id}")
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-    # # Mettre à jour un livre
-    # updated_data = {
-    #     "bookTitle": "L'Étranger - Nouvelle Édition",
-    #     "bookPublicationDate": "1942-06-01",
-    #     "editor": {
-    #         "editorId": 1
-    #     },
-    #     "author": {
-    #         "authorId": 1
-    #     },
-    #     "type": {
-    #         "typeId": 1
-    #     },
-    #     "genre": {
-    #         "genreId": 1
-    #     },
-    #     "bookDescription": "Un chef-d'œuvre intemporel.",
-    #     "numberOfPages": 130
-    # }
-    # updated_book = update_book(book_id, updated_data)
-    # print("Livre mis à jour:", json.dumps(updated_book, indent=2))
+# Recherche par genre
+print(f"Récupérer les Books par Genre ID {genre_id}")
+response = requests.get(f"{BASE_URL}/books/search/genre/{genre_id}")
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-    # # Recherche par titre
-    # search_results = find_books_by_title("Étranger")
-    # print("Livres trouvés par titre:", json.dumps(search_results, indent=2))
+# Recherche par éditeur
+print(f"Récupérer les Books par Editor ID {editor_id}")
+response = requests.get(f"{BASE_URL}/books/search/editor/{editor_id}")
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-    # # Nombre total de livres
-    # total_books = count_books()
-    # print("Nombre total de livres:", json.dumps(total_books, indent=2))
+# Recherche par type
+print(f"Récupérer les Books par Type ID {type_id}")
+response = requests.get(f"{BASE_URL}/books/search/type/{type_id}")
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-    # # Récupérer les livres par auteur
-    # author_books = get_books_by_author(1)
-    # print("Livres de l'auteur 1:", json.dumps(author_books, indent=2))
+# Recherche par mot-clé
+print("Recherche de Books par mot-clé 'étranger'")
+response = requests.get(f"{BASE_URL}/books/search/keyword", params={"keyword": "étranger"})
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-    # # Récupérer les livres par genre
-    # genre_books = get_books_by_genre(1)
-    # print("Livres du genre 1:", json.dumps(genre_books, indent=2))
+# Récupérer les Books avec Reviews
+print("Récupérer les Books avec des Reviews")
+response = requests.get(f"{BASE_URL}/books/reviews/not-empty")
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-    # # Récupérer les livres par éditeur
-    # editor_books = get_books_by_editor(1)
-    # print("Livres de l'éditeur 1:", json.dumps(editor_books, indent=2))
+# Récupérer les Books Top Rated (minRating = 4)
+print("Récupérer les Books avec une note minimale de 4")
+response = requests.get(f"{BASE_URL}/books/top-rated", params={"minRating": 4})
+print("Status Code:", response.status_code)
+print_json(response.json())
 
-    # # Récupérer les livres par type
-    # type_books = get_books_by_type(1)
-    # print("Livres du type 1:", json.dumps(type_books, indent=2))
+# Suppression du Book
+print(f"Suppression du Book ID {book_id}")
+response = requests.delete(f"{BASE_URL}/books/{book_id}")
+print("Status Code:", response.status_code)
 
-    # # Recherche par mot-clé
-    # keyword_books = search_books("Étrange")
-    # print("Livres trouvés par mot-clé:", json.dumps(keyword_books, indent=2))
-
-    # # Récupérer les livres avec des avis
-    # books_with_reviews = get_books_with_reviews()
-    # print("Livres avec avis:", books_with_reviews)
-
-    # # Récupérer les livres les mieux notés
-    # top_books = get_top_rated_books(4)
-    # print("Livres avec une note >= 4:", top_books)
-
-    # Suppression du livre
-    delete_status = delete_book(6)
-    print(f"Livre supprimé, statut HTTP: {delete_status}")
+print("==============================")
+print("FIN DES TESTS API BOOK")
+print("==============================")

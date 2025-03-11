@@ -1,36 +1,40 @@
 package com.bibliomanager.library.repository;
 
 import com.bibliomanager.library.model.Book;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
 @Repository
-/*
- @Repository: repository in the persistence layer and makes it eligible for Spring’s exception translation mechanism.
-*/
 public interface BookRepository extends CrudRepository<Book, Long> {
-    @Query("SELECT b FROM Book b WHERE LOWER(b.bookTitle) LIKE LOWER(CONCAT('%', :title, '%'))")
-    List<Book> findByBookTitleContainingIgnoreCase(@Param("title") String title);
 
-    @Query("SELECT b FROM Book b WHERE b.author.id = :authorId")
-    List<Book> findByAuthorId(@Param("authorId") Long authorId);
+    // Recherche basique par titre
+    List<Book> findByBookTitleContainingIgnoreCase(String bookTitle);
 
-    @Query("SELECT b FROM Book b WHERE b.genre.id = :genreId")
-    List<Book> findByGenreId(@Param("genreId") Long genreId);
+    // Recherche par auteur (Spring Data génère la query)
+    List<Book> findByAuthorAuthorId(Long authorId);
 
-    @Query("SELECT b FROM Book b WHERE b.editor.id = :editorId")
-    List<Book> findByEditorId(@Param("editorId") Long editorId);
+    // Recherche par genre (relation ManyToMany)
+    List<Book> findByGenresGenreId(Long genreId);
 
-    @Query("SELECT b FROM Book b WHERE b.type.id = :typeId")
-    List<Book> findByTypeId(@Param("typeId") Long typeId);
+    // Recherche par éditeur
+    List<Book> findByEditorEditorId(Long editorId);
 
-    @Query("SELECT b FROM Book b WHERE SIZE(b.bookReviews) > 0")
+    // Recherche par type
+    List<Book> findByTypeTypeId(Long typeId);
+
+    // Recherche des livres ayant des reviews (pas besoin de @Query ici)
     List<Book> findByBookReviewsIsNotEmpty();
 
-    @Query("SELECT DISTINCT b FROM Book b JOIN b.bookReviews r WHERE r.reviewRate >= :minRating")
-    List<Book> findByBookReviewsRatingGreaterThanEqual(@Param("minRating") int minRating);
-}
+    // Recherche par mot clé (requête personnalisée obligatoire)
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT b FROM Book b WHERE LOWER(b.bookTitle) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                    "OR LOWER(b.bookDescription) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<Book> searchBooks(@org.springframework.data.repository.query.Param("keyword") String keyword);
 
+    // Retourne les livres avec un rating moyen >= minRating
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT b FROM Book b JOIN b.bookReviews r " +
+                    "GROUP BY b " +
+                    "HAVING AVG(r.reviewRate) >= :minRating")
+    List<Book> findTopRatedBooks(@org.springframework.data.repository.query.Param("minRating") double minRating);
+}

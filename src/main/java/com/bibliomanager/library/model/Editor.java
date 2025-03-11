@@ -1,7 +1,7 @@
 package com.bibliomanager.library.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -18,21 +18,27 @@ public class Editor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long editorId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String editorName;
 
-    @Column(nullable = false)
-    private Double editorSIRET;
+    @Column(nullable = false, unique = true, length = 14)
+    private Long editorSIRET; // ou Long si tu préfères
 
-    @ManyToOne
-    @JoinColumn(name = "type_id", nullable = false)
-    @JsonBackReference
-    private Type editorType;
-
+    // ManyToMany relation avec Type
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
+    @JoinTable(
+            name = "editor_types",
+            joinColumns = @JoinColumn(name = "editor_id"),
+            inverseJoinColumns = @JoinColumn(name = "type_id")
+    )
     @JsonIgnore
-    @OneToMany(mappedBy = "editor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Type> types;
+
+    @OneToMany(mappedBy = "editor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "editor-book")
     private List<Book> books;
 
+    // Getters & Setters
     public Long getEditorId() {
         return editorId;
     }
@@ -49,20 +55,20 @@ public class Editor {
         this.editorName = editorName;
     }
 
-    public Double getEditorSIRET() {
+    public Long getEditorSIRET() {
         return editorSIRET;
     }
 
-    public void setEditorSIRET(Double editorSIRET) {
+    public void setEditorSIRET(Long editorSIRET) {
         this.editorSIRET = editorSIRET;
     }
 
-    public Type getEditorType() {
-        return editorType;
+    public List<Type> getTypes() {
+        return types;
     }
 
-    public void setEditorType(Type editorType) {
-        this.editorType = editorType;
+    public void setTypes(List<Type> types) {
+        this.types = types;
     }
 
     public List<Book> getBooks() {
@@ -73,4 +79,3 @@ public class Editor {
         this.books = books;
     }
 }
-

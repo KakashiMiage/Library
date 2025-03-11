@@ -1,9 +1,11 @@
 package com.bibliomanager.library.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+
 
 @Entity
 @Table(name = "review")
@@ -21,49 +23,51 @@ public class Review {
     @Column(length = 1000)
     private String reviewDescription;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference(value = "user-review")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
+    @JsonBackReference(value = "book-review")
     private Book book;
 
+    // Getters & Setters
     public Long getReviewId() {
         return reviewId;
-    }
-
-    public int getReviewRate() {
-        return reviewRate;
-    }
-
-    public String getReviewDescription() {
-        return reviewDescription;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Book getBook() {
-        return book;
     }
 
     public void setReviewId(Long reviewId) {
         this.reviewId = reviewId;
     }
 
+    public int getReviewRate() {
+        return reviewRate;
+    }
+
     public void setReviewRate(int reviewRate) {
         this.reviewRate = reviewRate;
+    }
+
+    public String getReviewDescription() {
+        return reviewDescription;
     }
 
     public void setReviewDescription(String reviewDescription) {
         this.reviewDescription = reviewDescription;
     }
 
+    public User getUser() {
+        return user;
+    }
+
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Book getBook() {
+        return book;
     }
 
     public void setBook(Book book) {

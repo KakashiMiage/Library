@@ -1,80 +1,69 @@
 package com.bibliomanager.library.service;
 
-import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.model.Genre;
+import com.bibliomanager.library.model.Book;
 import com.bibliomanager.library.repository.GenreRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class GenreService {
+
+    @Autowired
     private final GenreRepository genreRepository;
-    private final AuthService authService;
 
-    public GenreService(GenreRepository genreRepository, AuthService authService) {
+    public GenreService(GenreRepository genreRepository) {
         this.genreRepository = genreRepository;
-        this.authService = authService;
     }
 
-    public Iterable<Genre> getAllGenres() {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.genreRepository.findAll();
+    // Récupérer tous les genres
+    public List<Genre> getAllGenres() {
+        return (List<Genre>) genreRepository.findAll();
     }
 
-    public Genre addGenre(Genre genre) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.genreRepository.save(genre);
-    }
-
-    public Optional<Genre> getGenreById(Long genreId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.genreRepository.findById(genreId);
-    }
-
-    public List<Genre> getGenreByName(String genreName) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.genreRepository.findGenreByName(genreName);
-    }
-
-    public Genre updateGenre(Long genreId, Genre updatedGenre) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        if (genreRepository.existsById(genreId)) {
-            updatedGenre.setGenreId(genreId);
-            return genreRepository.save(updatedGenre);
-        }
-        return null;
-    }
-
-    public void deleteGenre(Long genreId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        this.genreRepository.deleteById(genreId);
-    }
-
+    // Compter les genres
     public long countGenres() {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.genreRepository.countGenres();
+        return genreRepository.count();
     }
 
+    // Créer un genre
+    public Genre createGenre(Genre genre) {
+        return genreRepository.save(genre);
+    }
+
+    // Trouver un genre par ID
+    public Genre getGenreById(Long genreId) {
+        return genreRepository.findById(genreId)
+                .orElseThrow(() -> new EntityNotFoundException("Genre introuvable avec l'id " + genreId));
+    }
+
+    // Mettre à jour un genre
+    public Genre updateGenre(Long genreId, Genre updatedGenre) {
+        Genre existingGenre = getGenreById(genreId);
+
+        existingGenre.setGenreName(updatedGenre.getGenreName());
+
+        return genreRepository.save(existingGenre);
+    }
+
+    // Supprimer un genre
+    public void deleteGenre(Long genreId) {
+        Genre existingGenre = getGenreById(genreId);
+        genreRepository.delete(existingGenre);
+    }
+
+    // Trouver un genre par son nom
+    public Genre findGenreByName(String genreName) {
+        return genreRepository.findByGenreNameIgnoreCase(genreName)
+                .orElseThrow(() -> new EntityNotFoundException("Genre non trouvé avec le nom : " + genreName));
+    }
+
+    // Récupérer tous les livres associés à un genre
     public List<Book> getBooksByGenre(Long genreId) {
-        if (!authService.isLoggedIn()) {
-            throw new RuntimeException("You need to be logged");
-        }
-        return this.genreRepository.getBooksByGenre(String.valueOf(genreId));
+        getGenreById(genreId); // Vérifie que le genre existe
+        return genreRepository.findBooksByGenre(genreId);
     }
 }

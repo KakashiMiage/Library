@@ -1,5 +1,7 @@
 package com.bibliomanager.library.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -17,19 +19,25 @@ public class Type {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long typeId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String typeName;
 
-    @OneToMany(mappedBy = "type", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "type", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "type-book")
     private List<Book> books;
 
-    @OneToMany(mappedBy = "editorType", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
+    @JoinTable(
+            name = "editor_types",
+            joinColumns = @JoinColumn(name = "type_id"),
+            inverseJoinColumns = @JoinColumn(name = "editor_id")
+    )
     private List<Editor> editors;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE}, mappedBy = "types")
     private List<Genre> genres;
 
+    // Getters & Setters
     public Long getTypeId() {
         return typeId;
     }
@@ -61,5 +69,12 @@ public class Type {
     public void setEditors(List<Editor> editors) {
         this.editors = editors;
     }
-}
 
+    public List<Genre> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(List<Genre> genres) {
+        this.genres = genres;
+    }
+}
