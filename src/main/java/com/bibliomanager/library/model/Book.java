@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.text.Normalizer;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +25,9 @@ public class Book {
 
     @Column(name = "book_title", nullable = false, length = 255)
     private String bookTitle;
+
+    @Column(name = "book_title_normalized", nullable = false, length = 255)
+    private String bookTitleNormalized;
 
     @Temporal(TemporalType.DATE)
     @Column(name = "publication_date", nullable = false)
@@ -62,6 +66,15 @@ public class Book {
 
     @Column(name = "number_of_pages", nullable = false)
     private int numberOfPages;
+
+    @PrePersist
+    @PreUpdate
+    private void normalizeFields() {
+        this.bookTitleNormalized = Normalizer
+                .normalize(this.bookTitle, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .toLowerCase();
+    }
 
     // Getters et Setters
     public Long getIsbn() {

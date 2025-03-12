@@ -22,13 +22,18 @@ public class AuthService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
+        // Recherche de l'utilisateur en BDD
         User user = userRepository.findByUserUsernameIgnoreCase(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé : " + username));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getUserUsername(),
-                user.getUserPassword(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-        );
+        // Log dev (tu peux l'enlever après)
+        System.out.println("Authentification en cours pour l'utilisateur : " + username);
+
+        // Construction de l'objet UserDetails
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUserUsername())
+                .password("{noop}" + user.getUserPassword()) // {noop} -> pas de password encoder
+                .authorities(Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())))
+                .build();
     }
 }

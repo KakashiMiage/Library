@@ -1,132 +1,130 @@
 import requests
 import json
+from requests.auth import HTTPBasicAuth
 
-API_BASE = "http://localhost:8080/api"
-TYPE_URL = f"{API_BASE}/types"
+BASE_URL = "http://localhost:8080/api"
+admin_auth = HTTPBasicAuth('admin', 'admin')
 
-def print_response(response):
-    print(f"Status Code: {response.status_code}")
+def print_json(resp):
     try:
-        print(json.dumps(response.json(), indent=2, ensure_ascii=False))
-    except Exception:
-        print(response.text)
-    print("-" * 50)
+        print(json.dumps(resp.json(), indent=4, ensure_ascii=False))
+    except:
+        print(resp.text)
 
-# 1. Créer un Type
-def create_type(type_data):
-    print("Création d'un Type")
-    response = requests.post(TYPE_URL, json=type_data)
-    print_response(response)
-    return response.json()
+def post(url, payload):
+    resp = requests.post(url, json=payload, auth=admin_auth)
+    print("POST", url, "\nStatus Code:", resp.status_code)
+    print_json(resp)
+    return resp
+
+def put(url, payload):
+    resp = requests.put(url, json=payload, auth=admin_auth)
+    print(f"PUT {url}\nStatus: {resp.status_code}")
+    print_json(resp)
+    return resp
+
+def get(url, params=None):
+    resp = requests.get(url, params=params)
+    print(f"GET {url}\nStatus: {resp.status_code}")
+    print_json(resp)
+    return resp
+
+def delete(url):
+    resp = requests.delete(url, auth=admin_auth)
+    print(f"DELETE {url}\nStatus: {resp.status_code}")
+    print(resp.text)
+
+def safe_get(resp, key):
+    if resp.status_code in [200, 201]:
+        return resp.json().get(key)
+    return None
+
+print("\n==============================")
+print("DÉMARRAGE TEST COMPLET API TYPES")
+print("==============================\n")
+
+# 1. Créer deux Types
+resp_type1 = requests.post(f"{BASE_URL}/types", json={"typeName": "Essai"}, auth=admin_auth)
+print_json(resp_type1)
+type1_id = safe_get(resp_type1, "typeId")
+
+resp_type2 = requests.post(f"{BASE_URL}/types", json={"typeName": "Biographie"}, auth=admin_auth)
+type2_id = safe_get(resp_type2, "typeId")
 
 # 2. Récupérer tous les Types
-def get_all_types():
-    print("Liste de tous les Types")
-    response = requests.get(TYPE_URL)
-    print_response(response)
-    return response.json()
+get(f"{BASE_URL}/types")
 
 # 3. Récupérer un Type par ID
-def get_type_by_id(type_id):
-    print(f"Détails du Type ID: {type_id}")
-    response = requests.get(f"{TYPE_URL}/{type_id}")
-    print_response(response)
-    return response.json()
+get(f"{BASE_URL}/types/{type1_id}")
 
-# 4. Rechercher un Type par nom
-def search_type_by_name(type_name):
-    print(f"Recherche du Type par nom: {type_name}")
-    response = requests.get(f"{TYPE_URL}/search/name", params={"typeName": type_name})
-    print_response(response)
-    return response.json()
+# 4. Rechercher Type par nom exact
+get(f"{BASE_URL}/types/search/name", {"typeName": "Essai"})
 
-# 5. Compter les Types
-def count_types():
-    print("Compter le nombre de Types")
-    response = requests.get(f"{TYPE_URL}/count")
-    print_response(response)
-    return response.json()
+# 5. Mettre à jour le premier Type
+put(f"{BASE_URL}/types/{type1_id}", {"typeName": "Essai Révisé"})
 
-# 6. Mise à jour d'un Type
-def update_type(type_id, updated_data):
-    print(f"Mise à jour du Type ID: {type_id}")
-    response = requests.put(f"{TYPE_URL}/{type_id}", json=updated_data)
-    print_response(response)
-    return response.json()
+# 5. Vérifier mise à jour
+get(f"{BASE_URL}/types/{type1_id}")
 
-# 7. Récupérer les livres par Type ID
-def get_books_by_type(type_id):
-    print(f"Récupérer les livres liés au Type ID: {type_id}")
-    response = requests.get(f"{TYPE_URL}/{type_id}/books")
-    print_response(response)
-    return response.json()
+# 5. Compter les types
+get(f"{BASE_URL}/types/count")
 
-# 8. Récupérer les Types liés à un Genre (optionnel)
-def get_types_by_genre(genre_id):
-    print(f"Récupérer les Types liés au Genre ID: {genre_id}")
-    response = requests.get(f"{TYPE_URL}/search/genre/{genre_id}")
-    print_response(response)
-    return response.json()
+# 6. Créer Genre AVEC Type associé
+genre_resp = requests.post(f"{BASE_URL}/genres", json={
+    "genreName": "Philosophie",
+    "types": [{"typeId": type1_id}]
+}, auth=admin_auth)
+genre_id = safe_get(genre_resp, "genreId")
 
-# 9. Supprimer un Type
-def delete_type(type_id):
-    print(f"Suppression du Type ID: {type_id}")
-    response = requests.delete(f"{TYPE_URL}/{type_id}")
-    print_response(response)
-    return response.status_code
+# 7. Créer Auteur
+author_resp = requests.post(f"{BASE_URL}/authors", json={
+    "authorFirstName": "Friedrich",
+    "authorLastName": "Nietzsche"
+}, auth=admin_auth)
+author_id = safe_get(author_resp, "authorId")
 
-# MAIN TEST SEQUENCE
-if __name__ == "__main__":
-    print("DÉMARRAGE DES TESTS COMPLETS SUR L'API TYPES")
+# 7. Créer Éditeur associé au Type
+editor_resp = requests.post(f"{BASE_URL}/editors", json={
+    "editorName": "Éditions Philosophiques",
+    "editorSIRET": 11223344556677,
+    "types": [{"typeId": type1_id}]
+}, auth=admin_auth)
+editor_id = safe_get(editor_resp, "editorId")
 
-    # Étape 1 : Créer deux types
-    type_1 = create_type({
-        "typeName": "Essai"
-    })
-    type_2 = create_type({
-        "typeName": "Biographie"
-    })
+# 8. Créer Livre associé au Type
+book_resp = requests.post(f"{BASE_URL}/books", json={
+    "bookTitle": "Ainsi parlait Zarathoustra",
+    "bookPublicationDate": "1883-01-01",
+    "genres": [{"genreId": safe_get(genre_resp, "genreId")}],
+    "bookDescription": "Œuvre majeure de Nietzsche.",
+    "numberOfPages": 300,
+    "author": {"authorId": author_id},
+    "editor": {"editorId": safe_get(editor_resp, "editorId")},
+    "type": {"typeId": type1_id}
+}, auth=admin_auth)
 
-    type1_id = type_1.get("typeId")
-    type2_id = type_2.get("typeId")
+book_id = safe_get(book_resp, "isbn")
 
-    if not type1_id or not type2_id:
-        print("Erreur : Impossible de créer les Types, arrêt du test.")
-        exit(1)
+# 8. Récupérer livres par Type
+get(f"{BASE_URL}/types/{type1_id}/books")
 
-    # Étape 2 : Vérifier tous les Types
-    get_all_types()
+# 9. Récupérer les Types liés à un Genre
+get(f"{BASE_URL}/types/search/genre/{safe_get(genre_resp, 'genreId')}")
 
-    # Étape 3 : Récupérer un Type par ID
-    get_type_by_id(type1_id)
+# 10. Supprimer livre associé
+requests.delete(f"{BASE_URL}/books/{book_id}", auth=admin_auth)
 
-    # Étape 4 : Rechercher un Type par nom
-    search_type_by_name("Essai")
+# 10. Suppression des Types
+delete(f"{BASE_URL}/types/{type1_id}")
+delete(f"{BASE_URL}/types/{type2_id}")
 
-    # Étape 5 : Mise à jour du premier Type
-    updated_type_payload = {
-        "typeName": "Essai Révisé"
-    }
-    update_type(type1_id, updated_type_payload)
+# Vérifier suppression du Type
+get(f"{BASE_URL}/types/{type1_id}")
 
-    # Étape 6 : Vérification après mise à jour
-    get_type_by_id(type1_id)
+# Vérifier liste et comptage après suppression
+get(f"{BASE_URL}/types")
+get(f"{BASE_URL}/types/count")
 
-    # Étape 7 : Compter le nombre de Types
-    count_types()
-
-    # Étape 8 : Récupérer les livres liés (aucun en théorie)
-    get_books_by_type(type1_id)
-
-    # Étape 9 : Rechercher les Types par Genre (optionnel si tu as une relation en base)
-    # get_types_by_genre(1)  # Si tu as un Genre en base
-
-    # Étape 10 : Suppression des Types
-    delete_type(type1_id)
-    delete_type(type2_id)
-
-    # Vérification finale : liste et count
-    get_all_types()
-    count_types()
-
-    print("TESTS COMPLETS TERMINÉS")
+print("\n==============================")
+print("FIN DES TESTS API TYPES")
+print("==============================\n")

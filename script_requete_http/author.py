@@ -1,210 +1,117 @@
 import requests
 import json
+from requests.auth import HTTPBasicAuth
 
-# URLs de base
-BASE_AUTHOR_URL = "http://localhost:8080/api/authors"
-BASE_BOOK_URL = "http://localhost:8080/api/books"
-BASE_TYPE_URL = "http://localhost:8080/api/types"
-BASE_GENRE_URL = "http://localhost:8080/api/genres"
-BASE_EDITOR_URL = "http://localhost:8080/api/editors"
+BASE_URL = "http://localhost:8080/api"
+headers = {"Content-Type": "application/json"}
+admin_auth = HTTPBasicAuth('admin', 'admin')
 
 def print_json(response):
     try:
         parsed = response.json()
         print(json.dumps(parsed, indent=4, ensure_ascii=False))
-    except Exception as e:
-        print(f"Erreur de parsing JSON: {e}")
+    except:
+        print("Pas de JSON. Réponse brute :")
         print(response.text)
 
-# ====================
-# CRUD sur Author
-# ====================
-def create_author(first_name, last_name):
-    print("Création d'un auteur")
-    payload = {
-        "authorFirstName": first_name,
-        "authorLastName": last_name
-    }
-    response = requests.post(BASE_AUTHOR_URL, json=payload)
-    print(f"Status Code: {response.status_code}")
+def post(url, payload):
+    response = requests.post(url, json=payload, auth=admin_auth)
+    print(f"POST {url}\nStatus Code: {response.status_code}")
     print_json(response)
-    return response.json().get("authorId") if response.status_code == 201 else None
+    return response
 
-def get_author_by_id(author_id):
-    print(f"Récupération de l'auteur par ID {author_id}")
-    response = requests.get(f"{BASE_AUTHOR_URL}/{author_id}")
-    print(f"Status Code: {response.status_code}")
+def put(url, payload):
+    response = requests.put(url, json=payload, auth=admin_auth)
+    print(f"PUT {url}\nStatus Code: {response.status_code}")
     print_json(response)
+    return response
 
-def update_author(author_id, first_name, last_name):
-    print(f"Mise à jour de l'auteur ID {author_id}")
-    payload = {
-        "authorFirstName": first_name,
-        "authorLastName": last_name
-    }
-    response = requests.put(f"{BASE_AUTHOR_URL}/{author_id}", json=payload)
-    print(f"Status Code: {response.status_code}")
+def get(url):
+    response = requests.get(url)
+    print(f"GET {url}\nStatus Code: {response.status_code}")
     print_json(response)
+    return response
 
-def delete_author(author_id):
-    print(f"Suppression de l'auteur ID {author_id}")
-    response = requests.delete(f"{BASE_AUTHOR_URL}/{author_id}")
-    print(f"Status Code: {response.status_code}")
+def delete(url):
+    response = requests.delete(url, auth=admin_auth)
+    print(f"DELETE {url}\nStatus Code: {response.status_code}")
+    print(response.text)
 
-def get_all_authors():
-    print("Récupération de tous les auteurs")
-    response = requests.get(BASE_AUTHOR_URL)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+def safe_get(response, key):
+    if response.status_code in [200, 201]:
+        return response.json().get(key)
+    return None
 
-def count_authors():
-    print("Nombre total d'auteurs")
-    response = requests.get(f"{BASE_AUTHOR_URL}/count")
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# --- TEST COMPLET AUTHORS ---
+print("\n==============================")
+print("DÉMARRAGE TEST COMPLET API AUTHORS")
+print("==============================\n")
 
-def search_author_by_fullname(first_name, last_name):
-    print(f"Recherche de l'auteur par prénom '{first_name}' et nom '{last_name}'")
-    params = {
-        "firstName": first_name,
-        "lastName": last_name
-    }
-    response = requests.get(f"{BASE_AUTHOR_URL}/search/fullname", params=params)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# 1. Création Auteur
+author_resp = post(f"{BASE_URL}/authors", {
+    "authorFirstName": "Victor",
+    "authorLastName": "Hugo"
+})
+author_id = safe_get(author_resp, "authorId")
 
-def search_authors_by_lastname(last_name):
-    print(f"Recherche des auteurs par nom '{last_name}'")
-    response = requests.get(f"{BASE_AUTHOR_URL}/search/lastname/{last_name}")
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# 2. Récupérer tous les auteurs
+get(f"{BASE_URL}/authors")
 
-def get_books_by_author(author_id):
-    print(f"Récupération des livres de l'auteur ID {author_id}")
-    response = requests.get(f"{BASE_AUTHOR_URL}/{author_id}/books")
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# 3. Auteur par ID
+get(f"{BASE_URL}/authors/{author_id}")
 
-# ====================
-# CRUD sur dépendances (Type / Genre / Editor / Book)
-# ====================
-def create_type(name):
-    print("Création d'un type")
-    payload = {"typeName": name}
-    response = requests.post(BASE_TYPE_URL, json=payload)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
-    return response.json().get("typeId") if response.status_code == 201 else None
+# 2. Recherche par nom complet
+get(f"{BASE_URL}/authors/search/fullname?firstName=Victor&lastName=Hugo")
 
-def create_genre(name):
-    print("Création d'un genre")
-    payload = {"genreName": name}
-    response = requests.post(BASE_GENRE_URL, json=payload)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
-    return response.json().get("genreId") if response.status_code == 201 else None
+# 3. Recherche par nom de famille
+get(f"{BASE_URL}/authors/search/lastname/Hugo")
 
-def create_editor(name, siret, type_ids):
-    print("Création d'un éditeur")
-    payload = {
-        "editorName": name,
-        "editorSIRET": siret,
-        "types": [{"typeId": type_id} for type_id in type_ids]
-    }
-    response = requests.post(BASE_EDITOR_URL, json=payload)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
-    return response.json().get("editorId") if response.status_code == 201 else None
+# 4. Compter tous les auteurs
+get(f"{BASE_URL}/authors/count")
 
-def create_book(title, publication_date, description, pages, author_id, editor_id, type_id, genre_ids):
-    print("Création d'un book")
-    payload = {
-        "bookTitle": title,
-        "bookPublicationDate": publication_date,
-        "bookDescription": description,
-        "numberOfPages": pages,
-        "author": {"authorId": author_id},
-        "editor": {"editorId": editor_id},
-        "type": {"typeId": type_id},
-        "genres": [{"genreId": gid} for gid in genre_ids]
-    }
-    response = requests.post(BASE_BOOK_URL, json=payload)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
-    return response.json().get("isbn") if response.status_code == 201 else None
+# 5. Mise à jour Auteur
+update_resp = put(f"{BASE_URL}/authors/{author_id}", {
+    "authorFirstName": "Victor-Marie",
+    "authorLastName": "Hugo"
+})
 
-def create_books_for_author(author_id):
-    print(f"Création de livres pour l'auteur ID {author_id}")
+# 6. Création Type
+type_resp = post(f"{BASE_URL}/types", {"typeName": "Roman"})
+type_id = safe_get(type_resp, "typeId")
 
-    # Création des dépendances nécessaires
-    type_id = create_type("Roman")
-    genre_id = create_genre("Aventure")
-    editor_id = create_editor("Hachette", 98765432101234, [type_id])
+# 6. Création Genre
+genre_resp = post(f"{BASE_URL}/genres", {"genreName": "Drame"})
+genre_id = safe_get(genre_resp, "genreId")
 
-    # Création d'un livre
-    book_id = create_book(
-        title="Voyage au centre de la Terre",
-        publication_date="1864-01-01",
-        description="Un voyage extraordinaire vers les profondeurs de la Terre.",
-        pages=300,
-        author_id=author_id,
-        editor_id=editor_id,
-        type_id=type_id,
-        genre_ids=[genre_id]
-    )
+# 7. Création Éditeur
+editor_resp = post(f"{BASE_URL}/editors", {
+    "editorName": "Éditions Classiques",
+    "editorSIRET": 98765432101234,
+    "types": [{"typeId": type_id}]
+})
+editor_id = safe_get(editor_resp, "editorId")
 
-    if book_id:
-        print(f"Livre créé avec succès pour l'auteur ID {author_id} !")
-    else:
-        print(f"Échec de la création du livre pour l'auteur ID {author_id}.")
+# 8. Création Livre (lié à l'auteur)
+book_resp = post(f"{BASE_URL}/books", {
+    "bookTitle": "Les Misérables",
+    "bookPublicationDate": "1862-04-03",
+    "editor": {"editorId": editor_id},
+    "author": {"authorId": author_id},
+    "type": {"typeId": type_id},
+    "genres": [{"genreId": genre_id}],
+    "bookDescription": "Chef d'œuvre de Victor Hugo.",
+    "numberOfPages": 1463
+})
 
-# ====================
-# Lancement des tests
-# ====================
-def run_tests():
-    print("==============================")
-    print("DÉMARRAGE DES TESTS COMPLETS API AUTHOR")
-    print("==============================")
+# 8. Livres de l'auteur
+get(f"{BASE_URL}/authors/{author_id}/books")
 
-    # Créer un auteur
-    author_id = create_author("Jules", "Verne")
-    if not author_id:
-        print("Échec de la création de l'auteur. Arrêt des tests.")
-        return
+# 9. Suppression Auteur
+delete(f"{BASE_URL}/authors/{author_id}")
 
-    # Créer un livre pour cet auteur
-    create_books_for_author(author_id)
+# 10. Vérifier suppression Auteur (doit retourner 404)
+get(f"{BASE_URL}/authors/{author_id}")
 
-    # Récupérer tous les auteurs
-    get_all_authors()
-
-    # Récupérer l'auteur par ID
-    get_author_by_id(author_id)
-
-    # Mise à jour de l'auteur
-    update_author(author_id, "Jules", "Verne - Révisé")
-
-    # Recherche par nom complet
-    search_author_by_fullname("Jules", "Verne - Révisé")
-
-    # Recherche par nom de famille
-    search_authors_by_lastname("Verne - Révisé")
-
-    # Compter le nombre d'auteurs
-    count_authors()
-
-    # Récupérer les livres de l'auteur
-    get_books_by_author(author_id)
-
-    # Suppression de l'auteur
-    delete_author(author_id)
-
-    # Vérifier la suppression
-    get_author_by_id(author_id)
-
-    print("==============================")
-    print("FIN DES TESTS API AUTHOR")
-    print("==============================")
-
-if __name__ == "__main__":
-    run_tests()
+print("\n==============================")
+print("FIN DES TESTS API AUTHORS")
+print("==============================\n")

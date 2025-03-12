@@ -1,202 +1,119 @@
 import requests
 import json
+from requests.auth import HTTPBasicAuth
 
-# URLs de base
-BASE_URL_EDITOR = "http://localhost:8080/api/editors"
-BASE_URL_TYPE = "http://localhost:8080/api/types"
-BASE_URL_BOOK = "http://localhost:8080/api/books"
-BASE_URL_AUTHOR = "http://localhost:8080/api/authors"
-BASE_URL_GENRE = "http://localhost:8080/api/genres"
+BASE_URL = "http://localhost:8080/api"
+headers = {"Content-Type": "application/json"}
+admin_auth = HTTPBasicAuth('admin', 'admin')
 
 def print_json(response):
     try:
-        parsed = response.json()
-        print(json.dumps(parsed, indent=4, ensure_ascii=False))
-    except Exception as e:
-        print(f"Erreur de parsing JSON: {e}")
+        print(json.dumps(response.json(), indent=4, ensure_ascii=False))
+    except:
+        print("Pas de JSON. Réponse brute :")
         print(response.text)
 
-# ====================
-# CRUD sur Types & Books pour dépendances
-# ====================
-def create_type(type_name):
-    print("Création d'un type")
-    payload = {"typeName": type_name}
-    response = requests.post(BASE_URL_TYPE, json=payload)
-    print(f"Status Code: {response.status_code}")
+def post(url, payload):
+    response = requests.post(url, json=payload, auth=admin_auth)
+    print(f"POST {url}\nStatus Code: {response.status_code}")
     print_json(response)
-    return response.json().get("typeId") if response.status_code == 201 else None
+    return response
 
-def create_genre(genre_name):
-    print("Création d'un genre")
-    payload = {"genreName": genre_name}
-    response = requests.post(BASE_URL_GENRE, json=payload)
-    print(f"Status Code: {response.status_code}")
+def put(url, payload):
+    response = requests.put(url, json=payload, auth=admin_auth)
+    print(f"PUT {url}\nStatus Code: {response.status_code}")
     print_json(response)
-    return response.json().get("genreId") if response.status_code == 201 else None
+    return response
 
-def create_author(first_name, last_name):
-    print("Création d'un auteur pour un livre")
-    payload = {
-        "authorFirstName": first_name,
-        "authorLastName": last_name
-    }
-    response = requests.post(BASE_URL_AUTHOR, json=payload)
-    print(f"Status Code: {response.status_code}")
+def get(url, params=None):
+    response = requests.get(url, params=params)
+    print(f"GET {url}\nStatus Code: {response.status_code}")
     print_json(response)
-    return response.json().get("authorId") if response.status_code == 201 else None
+    return response
 
-def create_book(title, date, description, pages, author_id, editor_id, type_id, genre_ids):
-    print("Création d'un livre pour un éditeur")
-    payload = {
-        "bookTitle": title,
-        "bookPublicationDate": date,
-        "bookDescription": description,
-        "numberOfPages": pages,
-        "author": {"authorId": author_id},
-        "editor": {"editorId": editor_id},
-        "type": {"typeId": type_id},
-        "genres": [{"genreId": gid} for gid in genre_ids]
-    }
-    response = requests.post(BASE_URL_BOOK, json=payload)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
-    return response.json().get("isbn") if response.status_code == 201 else None
+def delete(url):
+    response = requests.delete(url, auth=admin_auth)
+    print(f"DELETE {url}\nStatus Code: {response.status_code}")
+    print(response.text)
 
-# ====================
-# CRUD sur Editors
-# ====================
-def create_editor(name, siret, type_ids):
-    print("Création d'un éditeur")
-    payload = {
-        "editorName": name,
-        "editorSIRET": siret,
-        "types": [{"typeId": tid} for tid in type_ids]
-    }
-    response = requests.post(BASE_URL_EDITOR, json=payload)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
-    return response.json().get("editorId") if response.status_code == 201 else None
+def safe_get(response, key):
+    if response.status_code in [200, 201]:
+        return response.json().get(key)
+    return None
 
-def get_editor_by_id(editor_id):
-    print(f"Récupération de l'éditeur ID {editor_id}")
-    response = requests.get(f"{BASE_URL_EDITOR}/{editor_id}")
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# ==============================
+# TEST COMPLET API EDITORS
+# ==============================
+print("\n==============================")
+print("DÉMARRAGE TEST COMPLET API EDITORS")
+print("==============================\n")
 
-def update_editor(editor_id, name, siret, type_ids):
-    print(f"Mise à jour de l'éditeur ID {editor_id}")
-    payload = {
-        "editorName": name,
-        "editorSIRET": siret,
-        "types": [{"typeId": tid} for tid in type_ids]
-    }
-    response = requests.put(f"{BASE_URL_EDITOR}/{editor_id}", json=payload)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# Création d'un Type
+type_resp = post(f"{BASE_URL}/types", {"typeName": "Essai"})
+type_id = safe_get(type_resp, "typeId")
 
-def delete_editor(editor_id):
-    print(f"Suppression de l'éditeur ID {editor_id}")
-    response = requests.delete(f"{BASE_URL_EDITOR}/{editor_id}")
-    print(f"Status Code: {response.status_code}")
+# Création Éditeur avec Type associé
+editor_resp = post(f"{BASE_URL}/editors", {
+    "editorName": "Gallimard",
+    "editorSIRET": 12345678901234,
+    "types": [{"typeId": type_id}]
+})
+editor_id = safe_get(editor_resp, "editorId")
 
-def get_all_editors():
-    print("Récupération de tous les éditeurs")
-    response = requests.get(BASE_URL_EDITOR)
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# Récupération tous les éditeurs
+get(f"{BASE_URL}/editors")
 
-def count_editors():
-    print("Compter les éditeurs")
-    response = requests.get(f"{BASE_URL_EDITOR}/count")
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# Éditeur par ID
+get(f"{BASE_URL}/editors/{editor_id}")
 
-def get_editor_by_name(name):
-    print(f"Recherche de l'éditeur par nom '{name}'")
-    response = requests.get(f"{BASE_URL_EDITOR}/search/name", params={"name": name})
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# Mise à jour éditeur
+put(f"{BASE_URL}/editors/{editor_id}", {
+    "editorName": "Gallimard Révisé",
+    "editorSIRET": 98765432101234,
+    "types": [{"typeId": type_id}]
+})
 
-def search_editors(keyword):
-    print(f"Recherche d'éditeurs par keyword '{keyword}'")
-    response = requests.get(f"{BASE_URL_EDITOR}/search", params={"keyword": keyword})
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# Recherche éditeur par nom exact
+get(f"{BASE_URL}/editors/search/name", params={"name": "Gallimard Révisé"})
 
-def get_editors_by_type(type_id):
-    print(f"Recherche d'éditeurs par Type ID {type_id}")
-    response = requests.get(f"{BASE_URL_EDITOR}/search/type/{type_id}")
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# Recherche éditeurs par mot-clé
+get(f"{BASE_URL}/editors/search", params={"keyword": "Gallimard"})
 
-def get_books_by_editor(editor_id):
-    print(f"Récupération des livres édités par l'éditeur ID {editor_id}")
-    response = requests.get(f"{BASE_URL_EDITOR}/{editor_id}/books")
-    print(f"Status Code: {response.status_code}")
-    print_json(response)
+# Recherche éditeurs par Type
+get(f"{BASE_URL}/editors/search/type/{type_id}")
 
-# ====================
-# Lancement des tests
-# ====================
-def run_tests():
-    print("==============================")
-    print("DÉMARRAGE DES TESTS COMPLETS API EDITOR")
-    print("==============================")
+# Création Genre (dépendance pour Book)
+genre_resp = post(f"{BASE_URL}/genres", {"genreName": "Philosophie"})
+genre_id = safe_get(genre_resp, "genreId")
 
-    # Créer une dépendance Type
-    type_id = create_type("Essai")
-    if not type_id:
-        print("Échec de la création du Type. Arrêt des tests.")
-        return
+# Création Auteur (dépendance Book)
+author_resp = post(f"{BASE_URL}/authors", {
+    "authorFirstName": "René",
+    "authorLastName": "Descartes"
+})
+author_id = safe_get(author_resp, "authorId")
 
-    # Créer un éditeur
-    editor_id = create_editor("Larousse", 12345678901234, [type_id])
-    if not editor_id:
-        print("Échec de la création de l'éditeur. Arrêt des tests.")
-        return
+# Création Livre associé à l'éditeur
+book_resp = post(f"{BASE_URL}/books", {
+    "bookTitle": "Discours de la méthode",
+    "bookPublicationDate": "1637-01-01",
+    "editor": {"editorId": editor_id},
+    "author": {"authorId": author_id},
+    "type": {"typeId": type_id},
+    "genres": [{"genreId": genre_id}],
+    "bookDescription": "Classique de René Descartes.",
+    "numberOfPages": 250
+})
 
-    # Création d'un livre pour l'éditeur
-    genre_id = create_genre("Science")
-    author_id = create_author("René", "Descartes")
-    book_id = create_book(
-        "Discours de la méthode",
-        "1637-01-01",
-        "Ouvrage philosophique majeur.",
-        200,
-        author_id,
-        editor_id,
-        type_id,
-        [genre_id]
-    )
+# Livres par éditeur
+get(f"{BASE_URL}/editors/{editor_id}/books")
 
-    # Vérifications sur l'éditeur
-    get_all_editors()
-    get_editor_by_id(editor_id)
+# Suppression éditeur
+delete(f"{BASE_URL}/editors/{editor_id}")
 
-    # Update de l'éditeur
-    update_editor(editor_id, "Larousse - Édition Révisée", 98765432101234, [type_id])
+# Vérification suppression (doit renvoyer 404)
+get(f"{BASE_URL}/editors/{editor_id}")
 
-    # Recherche
-    get_editor_by_name("Larousse - Édition Révisée")
-    search_editors("Larousse")
-    get_editors_by_type(type_id)
-
-    # Récupérer les livres de cet éditeur
-    get_books_by_editor(editor_id)
-
-    # Compter les éditeurs
-    count_editors()
-
-    # Suppression de l'éditeur
-    delete_editor(editor_id)
-
-    # Vérifier la suppression
-    get_editor_by_id(editor_id)
-
-    print("==============================")
-    print("FIN DES TESTS API EDITOR")
-    print("==============================")
-
-if __name__ == "__main__":
-    run_tests()
+print("\n==============================")
+print("FIN DES TESTS API EDITORS")
+print("==============================\n")

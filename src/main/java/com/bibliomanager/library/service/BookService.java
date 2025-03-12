@@ -6,6 +6,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -152,9 +153,19 @@ public class BookService {
         return bookRepository.findByTypeTypeId(typeId);
     }
 
-    public List<Book> searchBooks(String keyword) {
-        return bookRepository.searchBooks(keyword);
+
+    private String normalize(String input) {
+        return Normalizer
+        .normalize(input, Normalizer.Form.NFD)
+        .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+        .toLowerCase();
     }
+
+    public List<Book> searchBooks(String keyword) {
+        String normalizedKeyword = normalize(keyword);
+        return bookRepository.searchBooks(normalizedKeyword);
+    }
+
 
     public List<Book> getBooksWithReviews() {
         return bookRepository.findByBookReviewsIsNotEmpty();

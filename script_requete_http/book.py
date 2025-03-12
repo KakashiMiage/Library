@@ -1,6 +1,7 @@
 import requests
 import json
 from datetime import datetime
+from requests.auth import HTTPBasicAuth
 
 BASE_URL = "http://localhost:8080/api"
 
@@ -8,193 +9,218 @@ headers = {
     "Content-Type": "application/json"
 }
 
+# Authentification ADMIN (adapter si besoin)
+admin_auth = HTTPBasicAuth('admin', 'admin')
+
+# Authentification READER (à configurer après création)
+reader_auth = HTTPBasicAuth('jdupont', 'password123')
+
+# --- Fonction helpers ---
+
+def print_json(response):
+    try:
+        parsed = response.json()
+        print(json.dumps(parsed, indent=4, ensure_ascii=False))
+    except Exception:
+        print("Pas de JSON. Voici la réponse brute :")
+        print(response.text)
+
+def post_with_admin_auth(url, payload):
+    response = requests.post(url, headers=headers, json=payload, auth=admin_auth)
+    print("POST", url)
+    print("Status Code:", response.status_code)
+    print_json(response)
+    return response
+
+def put_with_admin_auth(url, payload):
+    response = requests.put(url, headers=headers, json=payload, auth=admin_auth)
+    print("PUT", url)
+    print("Status Code:", response.status_code)
+    print_json(response)
+    return response
+
+def delete_with_admin_auth(url):
+    response = requests.delete(url, headers=headers, auth=admin_auth)
+    print("DELETE", url)
+    print("Status Code:", response.status_code)
+    print(response.text)
+
+def safe_get(response, key):
+    if response.status_code in [200, 201]:
+        return response.json().get(key)
+    return None
+
+# =====================
+# DÉBUT DES TESTS
+# =====================
 print("==============================")
 print("DÉMARRAGE DES TESTS COMPLETS API BOOK")
 print("==============================\n")
 
-# --- Fonction helpers ---
-def print_json(data):
-    print(json.dumps(data, indent=4, ensure_ascii=False))
+# =====================
+# CRÉATION DES DÉPENDANCES
+# =====================
 
-# Création du Type
 print("Création du Type")
-type_payload = {
-    "typeName": "Roman"
-}
-response = requests.post(f"{BASE_URL}/types", headers=headers, json=type_payload)
-print("Status Code:", response.status_code)
-print_json(response.json())
-type_id = response.json().get("typeId")
+type_payload = { "typeName": "Roman" }
+response = post_with_admin_auth(f"{BASE_URL}/types", type_payload)
+type_id = safe_get(response, "typeId")
 
-# Création du Genre
 print("Création du Genre")
-genre_payload = {
-    "genreName": "Aventure"
-}
-response = requests.post(f"{BASE_URL}/genres", headers=headers, json=genre_payload)
-print("Status Code:", response.status_code)
-print_json(response.json())
-genre_id = response.json().get("genreId")
+genre_payload = { "genreName": "Aventure" }
+response = post_with_admin_auth(f"{BASE_URL}/genres", genre_payload)
+genre_id = safe_get(response, "genreId")
 
-# Création de l'Auteur
 print("Création de l'Auteur")
 author_payload = {
     "authorFirstName": "Albert",
     "authorLastName": "Camus"
 }
-response = requests.post(f"{BASE_URL}/authors", headers=headers, json=author_payload)
-print("Status Code:", response.status_code)
-print_json(response.json())
-author_id = response.json().get("authorId")
+response = post_with_admin_auth(f"{BASE_URL}/authors", author_payload)
+author_id = safe_get(response, "authorId")
 
-# Création de l'Éditeur
 print("Création de l'Éditeur")
 editor_payload = {
     "editorName": "Gallimard",
     "editorSIRET": 12345678901234,
-    "types": [
-        {"typeId": type_id}
-    ]
+    "types": [ { "typeId": type_id } ]
 }
-response = requests.post(f"{BASE_URL}/editors", headers=headers, json=editor_payload)
-print("Status Code:", response.status_code)
-print_json(response.json())
-editor_id = response.json().get("editorId")
+response = post_with_admin_auth(f"{BASE_URL}/editors", editor_payload)
+editor_id = safe_get(response, "editorId")
 
-# Création d'un Utilisateur pour les Reviews
-print("Création d'un Utilisateur")
+# =====================
+# UTILISATEUR
+# =====================
+
+print("Création d'un Utilisateur READER")
 user_payload = {
-    "userName": "Jean Dupont",
-    "userUsername": "jdupont",
-    "userPassword": "password123",
+    "userName": "kevin pierre",
+    "userUsername": "kpierre",
+    "userPassword": "password1234",
     "role": "READER"
 }
-response = requests.post(f"{BASE_URL}/users", headers=headers, json=user_payload)
-print("Status Code:", response.status_code)
-print_json(response.json())
-user_id = response.json().get("userId")
+response = post_with_admin_auth(f"{BASE_URL}/users", user_payload)
+user_id = safe_get(response, "userId")
 
-# Création du Book
+# =====================
+# BOOK
+# =====================
+
 print("Création du Book")
 book_payload = {
     "bookTitle": "L'Étranger",
     "bookPublicationDate": "1942-06-01",
-    "editor": {"editorId": editor_id},
-    "author": {"authorId": author_id},
-    "type": {"typeId": type_id},
-    "genres": [{"genreId": genre_id}],
+    "editor": { "editorId": editor_id },
+    "author": { "authorId": author_id },
+    "type": { "typeId": type_id },
+    "genres": [ { "genreId": genre_id } ],
     "bookDescription": "Un classique de la littérature.",
     "numberOfPages": 123
 }
-response = requests.post(f"{BASE_URL}/books", headers=headers, json=book_payload)
-print("Status Code:", response.status_code)
-print_json(response.json())
-book_id = response.json().get("isbn")
+response = post_with_admin_auth(f"{BASE_URL}/books", book_payload)
+book_id = safe_get(response, "isbn")
 
-# Création d'une Review sur le Book
-print("Création d'une Review")
+# =====================
+# REVIEW (authentifié en READER)
+# =====================
+
+def post_with_reader_auth(url, payload):
+    response = requests.post(url, headers=headers, json=payload, auth=reader_auth)
+    print("POST (READER)", url)
+    print("Status Code:", response.status_code)
+    print_json(response)
+    return response
+
+print("Création d'une Review sur le Book (READER)")
 review_payload = {
     "reviewRate": 5,
     "reviewDescription": "Excellent livre !",
-    "user": {"userId": user_id},
-    "book": {"isbn": book_id}
+    "user": { "userId": user_id },
+    "book": { "isbn": book_id }
 }
-response = requests.post(f"{BASE_URL}/reviews", headers=headers, json=review_payload)
-print("Status Code:", response.status_code)
-print_json(response.json())
-review_id = response.json().get("reviewId")
+response = post_with_reader_auth(f"{BASE_URL}/reviews", review_payload)
+review_id = safe_get(response, "reviewId")
 
-# ----------------------
+# =====================
 # TEST DES ENDPOINTS BOOK
-# ----------------------
+# =====================
 
-# Récupération de tous les Books
-print("Récupération de tous les Books")
+print("\n--- Récupération de tous les Books ---")
 response = requests.get(f"{BASE_URL}/books")
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Récupération d'un Book par ID
-print(f"Récupération du Book ID {book_id}")
+print(f"\n--- Récupération du Book ID {book_id} ---")
 response = requests.get(f"{BASE_URL}/books/{book_id}")
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Mise à jour du Book
-print(f"Mise à jour du Book ID {book_id}")
+print(f"\n--- Mise à jour du Book ID {book_id} ---")
 update_payload = {
     "bookTitle": "L'Étranger - Édition Révisée",
     "bookPublicationDate": "1950-01-01",
-    "editor": {"editorId": editor_id},
-    "author": {"authorId": author_id},
-    "type": {"typeId": type_id},
-    "genres": [{"genreId": genre_id}],
+    "editor": { "editorId": editor_id },
+    "author": { "authorId": author_id },
+    "type": { "typeId": type_id },
+    "genres": [ { "genreId": genre_id } ],
     "bookDescription": "Une version révisée du classique.",
     "numberOfPages": 150
 }
-response = requests.put(f"{BASE_URL}/books/{book_id}", headers=headers, json=update_payload)
-print("Status Code:", response.status_code)
-print_json(response.json())
+put_with_admin_auth(f"{BASE_URL}/books/{book_id}", update_payload)
 
-# Compter tous les Books
-print("Compter tous les Books")
+print("\n--- Compter tous les Books ---")
 response = requests.get(f"{BASE_URL}/books/count")
 print("Status Code:", response.status_code)
-print(response.json())
+print_json(response)
 
-# Recherche par titre
-print("Recherche de Books par titre 'Étranger'")
-response = requests.get(f"{BASE_URL}/books/search/title", params={"title": "Étranger"})
+print("\n--- Recherche de Books par titre 'Étranger' ---")
+response = requests.get(f"{BASE_URL}/books/search/title", params={ "title": "Étranger" })
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Recherche par auteur
-print(f"Récupérer les Books par Author ID {author_id}")
+print(f"\n--- Récupérer les Books par Author ID {author_id} ---")
 response = requests.get(f"{BASE_URL}/books/search/author/{author_id}")
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Recherche par genre
-print(f"Récupérer les Books par Genre ID {genre_id}")
+print(f"\n--- Récupérer les Books par Genre ID {genre_id} ---")
 response = requests.get(f"{BASE_URL}/books/search/genre/{genre_id}")
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Recherche par éditeur
-print(f"Récupérer les Books par Editor ID {editor_id}")
+print(f"\n--- Récupérer les Books par Editor ID {editor_id} ---")
 response = requests.get(f"{BASE_URL}/books/search/editor/{editor_id}")
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Recherche par type
-print(f"Récupérer les Books par Type ID {type_id}")
+print(f"\n--- Récupérer les Books par Type ID {type_id} ---")
 response = requests.get(f"{BASE_URL}/books/search/type/{type_id}")
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Recherche par mot-clé
-print("Recherche de Books par mot-clé 'étranger'")
-response = requests.get(f"{BASE_URL}/books/search/keyword", params={"keyword": "étranger"})
+print("\n--- Recherche de Books par mot-clé 'étranger' ---")
+response = requests.get(f"{BASE_URL}/books/search/keyword", params={ "keyword": "étranger" })
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Récupérer les Books avec Reviews
-print("Récupérer les Books avec des Reviews")
+print("\n--- Récupérer les Books avec des Reviews ---")
 response = requests.get(f"{BASE_URL}/books/reviews/not-empty")
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Récupérer les Books Top Rated (minRating = 4)
-print("Récupérer les Books avec une note minimale de 4")
-response = requests.get(f"{BASE_URL}/books/top-rated", params={"minRating": 4})
+print("\n--- Récupérer les Books avec une note minimale de 4 ---")
+response = requests.get(f"{BASE_URL}/books/top-rated", params={ "minRating": 4 })
 print("Status Code:", response.status_code)
-print_json(response.json())
+print_json(response)
 
-# Suppression du Book
-print(f"Suppression du Book ID {book_id}")
-response = requests.delete(f"{BASE_URL}/books/{book_id}")
-print("Status Code:", response.status_code)
+print(f"\n--- Suppression du Book ID {book_id} ---")
+delete_with_admin_auth(f"{BASE_URL}/books/{book_id}")
 
-print("==============================")
+# =====================
+# FIN DES TESTS
+# =====================
+
+print("\n==============================")
 print("FIN DES TESTS API BOOK")
 print("==============================")
+

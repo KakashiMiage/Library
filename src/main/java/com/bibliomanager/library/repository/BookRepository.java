@@ -1,6 +1,8 @@
 package com.bibliomanager.library.repository;
 
 import com.bibliomanager.library.model.Book;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,15 +28,14 @@ public interface BookRepository extends CrudRepository<Book, Long> {
     List<Book> findByBookReviewsIsNotEmpty();
 
     // Recherche par mot clé (requête personnalisée obligatoire)
-    @org.springframework.data.jpa.repository.Query(
-            "SELECT b FROM Book b WHERE LOWER(b.bookTitle) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-                    "OR LOWER(b.bookDescription) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    List<Book> searchBooks(@org.springframework.data.repository.query.Param("keyword") String keyword);
+    @Query("SELECT b FROM Book b WHERE b.bookTitleNormalized LIKE CONCAT('%', :keyword, '%')")
+    List<Book> searchBooks(@Param("keyword") String keyword);
+
 
     // Retourne les livres avec un rating moyen >= minRating
-    @org.springframework.data.jpa.repository.Query(
+    @Query(
             "SELECT b FROM Book b JOIN b.bookReviews r " +
                     "GROUP BY b " +
                     "HAVING AVG(r.reviewRate) >= :minRating")
-    List<Book> findTopRatedBooks(@org.springframework.data.repository.query.Param("minRating") double minRating);
+    List<Book> findTopRatedBooks(@Param("minRating") double minRating);
 }
