@@ -47,19 +47,62 @@ The project is organized into several folders:
    ```sh
    mvn spring-boot:run
    ```
-3. The API will be accessible on : `http://localhost:8080`
+3. The API can be tested using the following python scripts. The scripts are located 
+in the `script_request_http` folder.
 
 ### Running Python Scripts
-Each script is **independent** and must be run separately, and the database must be deleted
-before executing a new script. Make sure the backend is running before executing them.
+Each script is **independent**. Use the `AdminInitializer.java` file in the **config** folder
+and uncomment it if the code is commented.
+The `DataInitializer.java` file in the **config** folder must be commented.
+Make sure the backend is running before executing them.
+
+Python scripts check whether entries already exist in the database, to avoid exceptions linked to 
+uniqueness constraints (IDs, unique keys, etc.). If need to check that the creation is working correctly, 
+it's possible to remove the database by deleting the `dataLibrary.db` file in the **resources** folder, 
+then restart the scripts and the server.
+
+Here are the commands for executing the different scripts :
+
+- **Author**
 ```sh
   py script_requete_http/author.py
 ```
-Replace `author.py` by another script name to perform operations on another API.
+- **Book**
+```sh
+  py script_requete_http/book.py
+```
+- **Editor**
+```sh
+  py script_requete_http/editor.py
+```
+- **Genre**
+```sh
+  py script_requete_http/genre.py
+```
+- **Review**
+```sh
+  py script_requete_http/review.py
+```
+- **Type**
+```sh
+  py script_requete_http/type.py
+```
+- **User**
+```sh
+  py script_requete_http/user.py
+```
 
 ### Database management
 The project uses a **SQLite database (`dataLibrary.db`)** located in `src/main/resources/`.
-The database will have to be reset between each script execution.
+If the database does not exist, it is created when the application is launched.
+
+### Launch the frontend
+Use the `DataInitializer.java` file in the **config** folder, uncomment it if the code is commented 
+and to create database entries.
+The `AdminInitializer.java` file in the **config** folder must be commented.
+Make sure the backend is running just before.
+
+To access the frontend, go to the following address : **http://localhost:8080/authors.xhtml**
 
 ## API Endpoints
 Each entity has its own entry point accessible at :
@@ -79,10 +122,27 @@ Users must be authenticated before accessing protected resources. The authentica
 
 - **AuthService.java:** Manages authentication logic, including user verification, password encryption, and token management.
 - **SecurityConfig.java:** Configures authentication filters, security rules, and role-based access control.
+- **AdminInitializer.java:** Initializes a default administrator and a reader user when the application starts.
 
-#### Security Configuration
+### Default User Initialization
+The `AdminInitializer.java` file is responsible for creating a default administrator and a reader user if they do not exist in the database.
+
+- **Admin credentials :**
+  - Username : `admin`
+  - Password : `admin`
+  - Role : `ADMIN`
+  
+- **Reader credentials :**
+  - Username : `jdupont`
+  - Password : `password123`
+  - Role : `READER`
+  
+If these users already exist in the database, no changes will be made.
+
+### Security Configuration
 The `SecurityConfig.java` class defines the security rules for the application. It includes:
 
-- **Public access :** Allows unauthenticated users to access book listings, author information, and other general data.
+- **Public access :** Reading access is public for the following resources: books, authors, genres, types, publishers, users and reviews. In addition, 
+the creation of new users is also publicly authorized.
 - **Restricted access** for authenticated users (`ADMIN` and  `READER` role) : Requires authentication for actions like posting reviews and managing favorites.
 - **Admin-only access :** Restricts full CRUD operations (create, update, delete) to users with the ADMIN role.
