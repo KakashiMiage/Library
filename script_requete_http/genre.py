@@ -5,6 +5,10 @@ from requests.auth import HTTPBasicAuth
 BASE_URL = "http://localhost:8080/api"  # Adapt if needed
 admin_auth = HTTPBasicAuth('admin', 'admin')
 
+headers = {
+    "Content-Type": "application/json"
+}
+
 def print_json(response):
     try:
         print(json.dumps(response.json(), indent=4, ensure_ascii=False))
@@ -40,15 +44,83 @@ def safe_get(response, key):
         return response.json().get(key)
     return None
 
+def get_with_admin_auth(url, params=None):
+    response = requests.get(url, headers=headers, params=params, auth=admin_auth)
+    print("GET", url)
+    print("Status Code:", response.status_code)
+    print_json(response)
+    return response
+
+def post_with_admin_auth(url, payload):
+    response = requests.post(url, headers=headers, json=payload, auth=admin_auth)
+    print("POST", url)
+    print("Status Code:", response.status_code)
+    print_json(response)
+    return response
+
+def create_editor_if_not_exists(editor_name, editor_siret, type_id):
+    # Recherche par nom
+    response_name = requests.get(f"{BASE_URL}/editors/search/name", params={"name": editor_name}, headers=headers, auth=admin_auth)
+    if response_name.status_code == 200:
+        existing_editors = response_name.json()
+        if isinstance(existing_editors, list) and existing_editors:
+            for editor in existing_editors:
+                if editor.get("editorSIRET") == editor_siret:
+                    print(f"L'éditeur '{editor_name}' avec le SIRET '{editor_siret}' existe déjà (ID: {editor['editorId']}). Aucune création nécessaire.")
+                    return editor["editorId"]
+
+    # Recherche par SIRET
+    response_siret = requests.get(f"{BASE_URL}/editors/search/siret", params={"siret": editor_siret}, headers=headers, auth=admin_auth)
+    if response_siret.status_code == 200:
+        existing_editor_by_siret = response_siret.json()
+        if "editorId" in existing_editor_by_siret:
+            print(f"L'éditeur avec le SIRET '{editor_siret}' existe déjà (ID: {existing_editor_by_siret['editorId']}). Aucune création nécessaire.")
+            return existing_editor_by_siret["editorId"]
+
+    # Création si aucun éditeur n'a été trouvé
+    print("Création de l'Éditeur")
+    editor_payload = {
+        "editorName": editor_name,
+        "editorSIRET": editor_siret,
+        "types": [{"typeId": type_id}]
+    }
+    response = post_with_admin_auth(f"{BASE_URL}/editors", editor_payload)
+    return safe_get(response, "editorId")
+
+def create_genre_if_not_exists(genre_name):
+    response = requests.get(f"{BASE_URL}/genres/search", params={"name": genre_name}, headers=headers, auth=admin_auth)
+
+    if response.status_code == 200:
+        existing_genre = response.json()
+        if "genreId" in existing_genre:
+            print(f"Le genre '{genre_name}' existe déjà avec l'ID {existing_genre['genreId']}. Aucune création nécessaire.")
+            return existing_genre["genreId"]
+
+    print("Création du Genre")
+    response = requests.post(f"{BASE_URL}/genres", headers=headers, json={"genreName": genre_name}, auth=admin_auth)
+    
+    return safe_get(response, "genreId")
+
+def create_type_if_not_exists(type_name):
+    response = requests.get(f"{BASE_URL}/types/search/name", params={"typeName": type_name}, headers=headers, auth=admin_auth)
+
+    if response.status_code == 200:
+        existing_type = response.json()
+        if "typeId" in existing_type:
+            print(f"Le type '{type_name}' existe déjà avec l'ID {existing_type['typeId']}. Aucune création nécessaire.")
+            return existing_type["typeId"]
+
+    print("Création du Type")
+    response = requests.post(f"{BASE_URL}/types", headers=headers, json={"typeName": type_name}, auth=admin_auth)
+    
+    return safe_get(response, "typeId")
+
 print("\n==============================")
 print("DÉMARRAGE TEST COMPLET API GENRES")
 print("==============================\n")
 
 # --- 1) Création Genre
-genre_resp = post(f"{BASE_URL}/genres", {
-    "genreName": "Philosophie"
-})
-genre_id = safe_get(genre_resp, "genreId")
+genre_id = create_genre_if_not_exists("Philosophie")
 
 # --- 2) Récupérer tous les Genres
 get(f"{BASE_URL}/genres")
@@ -71,8 +143,7 @@ get(f"{BASE_URL}/genres/{genre_id}")
 get(f"{BASE_URL}/genres/count")
 
 # --- 8) Créer dépendances (Type, Author, Editor) pour Book
-type_resp = post(f"{BASE_URL}/types", {"typeName": "Essai"})
-type_id = safe_get(type_resp, "typeId")
+type_id = create_type_if_not_exists("Essai")
 
 author_resp = post(f"{BASE_URL}/authors", {
     "authorFirstName": "Sigmund",
@@ -80,12 +151,7 @@ author_resp = post(f"{BASE_URL}/authors", {
 })
 author_id = safe_get(author_resp, "authorId")
 
-editor_resp = post(f"{BASE_URL}/editors", {
-    "editorName": "Éditions Psychanalytiques",
-    "editorSIRET": 1234567890,
-    "types": [{"typeId": type_id}]
-})
-editor_id = safe_get(editor_resp, "editorId")
+editor_id = create_editor_if_not_exists("Éditions Psychanalytiques", 1234567890, type_id)
 
 # --- 9) Créer un Livre associé à ce Genre
 book_resp = post(f"{BASE_URL}/books", {

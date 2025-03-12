@@ -60,6 +60,12 @@ public class EditorController {
         return ResponseEntity.ok(editor);
     }
 
+    @GetMapping("/search/siret")
+    public ResponseEntity<Editor> getEditorBySiret(@RequestParam Long siret) {
+        Editor editor = editorService.getEditorBySiret(siret);
+        return ResponseEntity.ok(editor);
+    }
+
     @GetMapping("/search/type/{typeId}")
     public ResponseEntity<List<Editor>> getEditorsByType(@PathVariable("typeId") Long typeId) {
         List<Editor> editors = editorService.getEditorsByType(typeId);

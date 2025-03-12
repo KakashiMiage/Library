@@ -25,6 +25,7 @@ public class Genre {
     private List<Book> books;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
+    @JsonIgnore
     @JoinTable(
             name = "type_genre",
             joinColumns = {@JoinColumn(name = "genre_id")},

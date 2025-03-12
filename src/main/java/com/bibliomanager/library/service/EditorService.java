@@ -96,6 +96,11 @@ public class EditorService {
                 .orElseThrow(() -> new EntityNotFoundException("Éditeur non trouvé avec le nom : " + editorName));
     }
 
+    public Editor getEditorBySiret(Long editorSiret) {
+        return editorRepository.findByEditorSIRET(editorSiret)
+                .orElseThrow(() -> new EntityNotFoundException("Éditeur non trouvé avec le siret : " + editorSiret));
+    }
+
     public List<Editor> getEditorsByType(Long typeId) {
         return editorRepository.findEditorsByType(typeId);
     }

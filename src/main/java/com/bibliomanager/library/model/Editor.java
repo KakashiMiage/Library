@@ -22,7 +22,7 @@ public class Editor {
     private String editorName;
 
     @Column(nullable = false, unique = true, length = 14)
-    private Long editorSIRET; // ou Long si tu préfères
+    private Long editorSIRET;
 
     // ManyToMany relation avec Type
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})

@@ -15,6 +15,9 @@ public interface EditorRepository extends CrudRepository<Editor, Long> {
     // Recherche par nom exact (insensible à la casse)
     Optional<Editor> findByEditorNameIgnoreCase(String editorName);
 
+    // Recherche par siret exact
+    Optional<Editor> findByEditorSIRET(Long editorSIRET);
+
     // Liste des éditeurs par Type (N:M relation avec Type)
     @Query("SELECT e FROM Editor e JOIN e.types t WHERE t.typeId = :typeId")
     List<Editor> findEditorsByType(@Param("typeId") Long typeId);

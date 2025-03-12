@@ -93,6 +93,14 @@ public class Book {
         this.bookTitle = bookTitle;
     }
 
+    public String getBookTitleNormalized() {
+        return bookTitleNormalized;
+    }
+
+    public void setBookTitleNormalized(String bookTitleNormalized) {
+        this.bookTitleNormalized = bookTitleNormalized;
+    }
+
     public Date getBookPublicationDate() {
         return bookPublicationDate;
     }

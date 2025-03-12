@@ -5,8 +5,13 @@ from requests.auth import HTTPBasicAuth
 # ======================
 # Configuration de base
 # ======================
-BASE_URL = "http://localhost:8080/api/reviews"
+BASE_URL_REVIEWS = "http://localhost:8080/api/reviews"
+BASE_URL = "http://localhost:8080/api"
 admin_auth = HTTPBasicAuth("admin", "admin")
+
+headers = {
+    "Content-Type": "application/json"
+}
 
 def print_json(resp):
     try:
@@ -23,15 +28,6 @@ def safe_get(resp, key):
 # ===================================
 # Fonctions utilitaires (dépendances)
 # ===================================
-
-def create_type(name):
-    url = "http://localhost:8080/api/types"
-    payload = {"typeName": name}
-    resp = requests.post(url, json=payload, auth=admin_auth)
-    print("Création d'un type :", name)
-    print(f"Status: {resp.status_code}")
-    print_json(resp)
-    return safe_get(resp, "typeId")
 
 def create_genre(name):
     url = "http://localhost:8080/api/genres"
@@ -54,35 +50,8 @@ def create_author(first_name, last_name):
     print_json(resp)
     return safe_get(resp, "authorId")
 
-def create_editor(name, siret, type_id):
-    url = "http://localhost:8080/api/editors"
-    payload = {
-        "editorName": name,
-        "editorSIRET": siret,
-        "types": [{"typeId": type_id}]
-    }
-    resp = requests.post(url, json=payload, auth=admin_auth)
-    print("Création d'un éditeur :", name)
-    print(f"Status: {resp.status_code}")
-    print_json(resp)
-    return safe_get(resp, "editorId")
-
-def create_user(name, username, password, role):
-    url = "http://localhost:8080/api/users"
-    payload = {
-        "userName": name,
-        "userUsername": username,
-        "userPassword": password,
-        "role": role  # "READER" ou "ADMIN"
-    }
-    resp = requests.post(url, json=payload, auth=admin_auth)
-    print("Création d'un utilisateur :", username)
-    print(f"Status: {resp.status_code}")
-    print_json(resp)
-    return safe_get(resp, "userId")
-
 def create_book(title, date, description, pages, author_id, editor_id, type_id, genre_id):
-    url = "http://localhost:8080/api/books"
+    url = BASE_URL+"/books"
     payload = {
         "bookTitle": title,
         "bookPublicationDate": date,
@@ -111,20 +80,20 @@ def create_review(rate, description, user_id, book_id):
         "user": {"userId": user_id},
         "book": {"isbn": book_id}
     }
-    resp = requests.post(BASE_URL, json=payload, auth=admin_auth)
+    resp = requests.post(BASE_URL_REVIEWS, json=payload, auth=admin_auth)
     print("Status:", resp.status_code)
     print_json(resp)
     return safe_get(resp, "reviewId")
 
 def get_all_reviews():
     print("Récupération de toutes les reviews")
-    resp = requests.get(BASE_URL)  # Lecture publique si config le permet
+    resp = requests.get(BASE_URL_REVIEWS)  # Lecture publique si config le permet
     print("Status:", resp.status_code)
     print_json(resp)
 
 def get_review_by_id(review_id):
     print(f"Récupération de la review ID {review_id}")
-    resp = requests.get(f"{BASE_URL}/{review_id}")
+    resp = requests.get(f"{BASE_URL_REVIEWS}/{review_id}")
     print("Status:", resp.status_code)
     print_json(resp)
 
@@ -136,45 +105,155 @@ def update_review(review_id, new_rate, new_description, user_id, book_id):
         "user": {"userId": user_id},
         "book": {"isbn": book_id}
     }
-    resp = requests.put(f"{BASE_URL}/{review_id}", json=payload, auth=admin_auth)
+    resp = requests.put(f"{BASE_URL_REVIEWS}/{review_id}", json=payload, auth=admin_auth)
     print("Status:", resp.status_code)
     print_json(resp)
 
 def delete_review(review_id):
     print(f"Suppression de la review ID {review_id}")
-    resp = requests.delete(f"{BASE_URL}/{review_id}", auth=admin_auth)
+    resp = requests.delete(f"{BASE_URL_REVIEWS}/{review_id}", auth=admin_auth)
     print("Status:", resp.status_code)
     print(resp.text)
 
 def count_reviews():
     print("Nombre total de reviews")
-    resp = requests.get(f"{BASE_URL}/count")
+    resp = requests.get(f"{BASE_URL_REVIEWS}/count")
     print("Status:", resp.status_code)
     print_json(resp)
 
 def get_reviews_by_book(book_id):
     print(f"Récupération des reviews du book ID {book_id}")
-    resp = requests.get(f"{BASE_URL}/book/{book_id}")
+    resp = requests.get(f"{BASE_URL_REVIEWS}/book/{book_id}")
     print("Status:", resp.status_code)
     print_json(resp)
 
 def get_reviews_by_user(user_id):
     print(f"Récupération des reviews du user ID {user_id}")
-    resp = requests.get(f"{BASE_URL}/user/{user_id}")
+    resp = requests.get(f"{BASE_URL_REVIEWS}/user/{user_id}")
     print("Status:", resp.status_code)
     print_json(resp)
 
 def get_average_rating(book_id):
     print(f"Récupération de la moyenne des reviews pour le book ID {book_id}")
-    resp = requests.get(f"{BASE_URL}/book/{book_id}/average-rating")
+    resp = requests.get(f"{BASE_URL_REVIEWS}/book/{book_id}/average-rating")
     print("Status:", resp.status_code)
     print_json(resp)
 
 def get_top_rated_books(min_rating):
     print(f"Récupération des books avec une note >= {min_rating}")
-    resp = requests.get(f"{BASE_URL}/top-rated", params={"minRating": min_rating})
+    resp = requests.get(f"{BASE_URL_REVIEWS}/top-rated", params={"minRating": min_rating})
     print("Status:", resp.status_code)
     print_json(resp)
+
+def search_user_by_username(username):
+    print(f"Recherche de User par username '{username}'")
+    response = requests.get(
+        f"{BASE_URL}/users/search/username",
+        params={"username": username},
+        headers=headers,
+        auth=admin_auth  # Ajout de l'authentification
+    )
+    
+    print("Status Code:", response.status_code)
+    
+    if response.status_code == 200:
+        print_json(response)
+        return response.json()
+    elif response.status_code == 401:
+        print("Erreur : Accès non autorisé. Vérifiez les identifiants administrateurs.")
+        return None
+    else:
+        print(f"Erreur inattendue : {response.status_code}")
+        return None
+
+def get_with_admin_auth(url, params=None):
+    response = requests.get(url, headers=headers, params=params, auth=admin_auth)
+    print("GET", url)
+    print("Status Code:", response.status_code)
+    print_json(response)
+    return response
+
+def post_with_admin_auth(url, payload):
+    response = requests.post(url, headers=headers, json=payload, auth=admin_auth)
+    print("POST", url)
+    print("Status Code:", response.status_code)
+    print_json(response)
+    return response
+
+def create_type_if_not_exists(type_name):
+    response = requests.get(f"{BASE_URL}/types/search/name", params={"typeName": type_name}, headers=headers, auth=admin_auth)
+
+    if response.status_code == 200:
+        existing_type = response.json()
+        if "typeId" in existing_type:
+            print(f"Le type '{type_name}' existe déjà avec l'ID {existing_type['typeId']}. Aucune création nécessaire.")
+            return existing_type["typeId"]
+
+    print("Création du Type")
+    response = requests.post(f"{BASE_URL}/types", headers=headers, json={"typeName": type_name}, auth=admin_auth)
+    
+    return safe_get(response, "typeId")
+
+
+def create_genre_if_not_exists(genre_name):
+    response = requests.get(f"{BASE_URL}/genres/search", params={"name": genre_name}, headers=headers, auth=admin_auth)
+
+    if response.status_code == 200:
+        existing_genre = response.json()
+        if "genreId" in existing_genre:
+            print(f"Le genre '{genre_name}' existe déjà avec l'ID {existing_genre['genreId']}. Aucune création nécessaire.")
+            return existing_genre["genreId"]
+
+    print("Création du Genre")
+    response = requests.post(f"{BASE_URL}/genres", headers=headers, json={"genreName": genre_name}, auth=admin_auth)
+    
+    return safe_get(response, "genreId")
+
+def create_editor_if_not_exists(editor_name, editor_siret, type_id):
+    # Recherche par nom
+    response_name = requests.get(f"{BASE_URL}/editors/search/name", params={"name": editor_name}, headers=headers, auth=admin_auth)
+    if response_name.status_code == 200:
+        existing_editors = response_name.json()
+        if isinstance(existing_editors, list) and existing_editors:
+            for editor in existing_editors:
+                if editor.get("editorSIRET") == editor_siret:
+                    print(f"L'éditeur '{editor_name}' avec le SIRET '{editor_siret}' existe déjà (ID: {editor['editorId']}). Aucune création nécessaire.")
+                    return editor["editorId"]
+
+    # Recherche par SIRET
+    response_siret = requests.get(f"{BASE_URL}/editors/search/siret", params={"siret": editor_siret}, headers=headers, auth=admin_auth)
+    if response_siret.status_code == 200:
+        existing_editor_by_siret = response_siret.json()
+        if "editorId" in existing_editor_by_siret:
+            print(f"L'éditeur avec le SIRET '{editor_siret}' existe déjà (ID: {existing_editor_by_siret['editorId']}). Aucune création nécessaire.")
+            return existing_editor_by_siret["editorId"]
+
+    # Création si aucun éditeur n'a été trouvé
+    print("Création de l'Éditeur")
+    editor_payload = {
+        "editorName": editor_name,
+        "editorSIRET": editor_siret,
+        "types": [{"typeId": type_id}]
+    }
+    response = post_with_admin_auth(f"{BASE_URL}/editors", editor_payload)
+    return safe_get(response, "editorId")
+
+def create_user_if_not_exists(user_name, user_username, user_password, role):
+    existing_user = search_user_by_username(user_username)
+    
+    if existing_user:
+        print(f"L'utilisateur '{user_name}' avec le username '{user_username}' existe déjà (ID: {existing_user['userId']}). Aucune création nécessaire.")
+        return existing_user["userId"]
+    
+    print("Création d'un Utilisateur")
+    user_payload = {
+        "userName": user_name,
+        "userUsername": user_username,
+        "userPassword": user_password,
+        "role": role
+    }
+    response = post_with_admin_auth(f"{BASE_URL}/users", user_payload)
+    return safe_get(response, "userId")
 
 # ===================================
 # TEST RUNNER
@@ -186,11 +265,11 @@ def run_tests():
     print("==============================")
 
     # Création des dépendances (avec authentification admin)
-    type_id = create_type("Philosophie")
-    genre_id = create_genre("Essai")
+    type_id = create_type_if_not_exists("Philosophie")
+    genre_id = create_genre_if_not_exists("Essai")
     author_id = create_author("Platon", "Athénien")
-    editor_id = create_editor("PhiloPress", 99999999999999, type_id)
-    user_id = create_user("Socrate", "socrate123", "password", "READER")
+    editor_id = create_editor_if_not_exists("PhiloPress", 99999999999999, type_id)
+    user_id = create_user_if_not_exists("Socrate", "socrate123", "password", "READER")
 
     book_id = create_book(
         "La République",
