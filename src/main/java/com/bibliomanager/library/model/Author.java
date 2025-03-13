@@ -1,33 +1,33 @@
 package com.bibliomanager.library.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 @Entity
 @Table(name = "author")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Author {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long authorId;
 
-    @Column(nullable = false)
+    @Column(name = "first_name", nullable = false, length = 100)
     private String authorFirstName;
 
-    @Column(nullable = false)
+    @Column(name = "last_name", nullable = false, length = 100)
     private String authorLastName;
 
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "author-book")
     private List<Book> books;
 
-    public Author() {
-    }
-
-    public Author(String authorFirstName, String authorLastName) {
-        this.authorFirstName = authorFirstName;
-        this.authorLastName = authorLastName;
-    }
-
+    // Getters et Setters
     public Long getAuthorId() {
         return authorId;
     }
@@ -60,4 +60,3 @@ public class Author {
         this.books = books;
     }
 }
-

@@ -1,62 +1,81 @@
 package com.bibliomanager.library.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+import java.text.Normalizer;
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table(name = "book")
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long isbn;
 
-    @Column(nullable = false)
+    @Column(name = "book_title", nullable = false, length = 255)
     private String bookTitle;
 
+    @Column(name = "book_title_normalized", nullable = false, length = 255)
+    private String bookTitleNormalized;
+
     @Temporal(TemporalType.DATE)
+    @Column(name = "publication_date", nullable = false)
     private Date bookPublicationDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "editor_id", nullable = false)
+    @JsonBackReference(value = "editor-book")
     private Editor editor;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
+    @JsonBackReference(value = "author-book")
     private Author author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id", nullable = false)
+    @JsonBackReference(value = "type-book")
     private Type type;
 
-    @ManyToOne
-    @JoinColumn(name = "genre_id", nullable = false)
-    private Genre genre;
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
+    @JoinTable(
+            name = "book_genres",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<Genre> genres;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String bookDescription;
 
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "book-review")
     private List<Review> bookReviews;
 
-    @Column(nullable = false)
+    @Column(name = "number_of_pages", nullable = false)
     private int numberOfPages;
 
-    public Book() {
+    @PrePersist
+    @PreUpdate
+    private void normalizeFields() {
+        this.bookTitleNormalized = Normalizer
+                .normalize(this.bookTitle, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .toLowerCase();
     }
 
-    public Book(String bookTitle, Date bookPublicationDate, Editor editor, Author author, Type type, Genre genre, String bookDescription, int numberOfPages) {
-        this.bookTitle = bookTitle;
-        this.bookPublicationDate = bookPublicationDate;
-        this.editor = editor;
-        this.author = author;
-        this.type = type;
-        this.genre = genre;
-        this.bookDescription = bookDescription;
-        this.numberOfPages = numberOfPages;
-    }
-
+    // Getters et Setters
     public Long getIsbn() {
         return isbn;
     }
@@ -71,6 +90,14 @@ public class Book {
 
     public void setBookTitle(String bookTitle) {
         this.bookTitle = bookTitle;
+    }
+
+    public String getBookTitleNormalized() {
+        return bookTitleNormalized;
+    }
+
+    public void setBookTitleNormalized(String bookTitleNormalized) {
+        this.bookTitleNormalized = bookTitleNormalized;
     }
 
     public Date getBookPublicationDate() {
@@ -105,12 +132,12 @@ public class Book {
         this.type = type;
     }
 
-    public Genre getGenre() {
-        return genre;
+    public List<Genre> getGenres() {
+        return genres;
     }
 
-    public void setGenre(Genre genre) {
-        this.genre = genre;
+    public void setGenres(List<Genre> genres) {
+        this.genres = genres;
     }
 
     public String getBookDescription() {

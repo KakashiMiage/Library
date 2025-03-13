@@ -1,61 +1,45 @@
 package com.bibliomanager.library.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 
 @Entity
 @Table(name = "review")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reviewId;
 
-    @ManyToOne
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;
-
-    @ManyToOne
-    @JoinColumn(name = "reader_id", nullable = false)
-    private Reader reader;
-
     @Column(nullable = false)
     private int reviewRate;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 1000)
     private String reviewDescription;
 
-    public Review() {
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference(value = "user-review")
+    private User user;
 
-    public Review(Book book, Reader reader, int reviewRate, String reviewDescription) {
-        this.book = book;
-        this.reader = reader;
-        this.reviewRate = reviewRate;
-        this.reviewDescription = reviewDescription;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", nullable = false)
+    @JsonBackReference(value = "book-review")
+    private Book book;
 
+    // Getters & Setters
     public Long getReviewId() {
         return reviewId;
     }
 
     public void setReviewId(Long reviewId) {
         this.reviewId = reviewId;
-    }
-
-    public Book getBook() {
-        return book;
-    }
-
-    public void setBook(Book book) {
-        this.book = book;
-    }
-
-    public Reader getReader() {
-        return reader;
-    }
-
-    public void setReader(Reader reader) {
-        this.reader = reader;
     }
 
     public int getReviewRate() {
@@ -73,5 +57,20 @@ public class Review {
     public void setReviewDescription(String reviewDescription) {
         this.reviewDescription = reviewDescription;
     }
-}
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Book getBook() {
+        return book;
+    }
+
+    public void setBook(Book book) {
+        this.book = book;
+    }
+}
