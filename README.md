@@ -216,7 +216,7 @@ Users must be authenticated before accessing protected resources. The authentica
 - **AdminInitializer.java:** Initializes a default administrator and a reader user when the application starts.
 
 ### Default User Initialization
-The `AdminInitializer.java` file is responsible for creating a default administrator and a reader user if they do not exist in the database.
+The `AdminInitializer.java` file for python test is responsible for creating a default administrator and a reader user if they do not exist in the database.
 
 - **Admin credentials :**
   - Username : `admin`
@@ -228,7 +228,7 @@ The `AdminInitializer.java` file is responsible for creating a default administr
   - Password : `password123`
   - Role : `READER`
  
-credentials in `DataInitializer.java` for python test :
+credentials in `DataInitializer.java` for front test :
 
 - **Admin credentials :**
   - Username : `admin`
