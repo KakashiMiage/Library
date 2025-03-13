@@ -1,4 +1,4 @@
-package com.bibliomanager.library.config;
+/*package com.bibliomanager.library.config;
 
 import com.bibliomanager.library.model.Role;
 import com.bibliomanager.library.model.User;
@@ -7,9 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Initialisation d'un administrateur par défaut au démarrage.
- */
+
 @Configuration
 public class AdminInitializer {
 
@@ -63,4 +61,4 @@ public class AdminInitializer {
 
         };
     }
-}
+}*/

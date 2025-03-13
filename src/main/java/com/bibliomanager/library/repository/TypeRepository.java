@@ -12,14 +12,11 @@ import java.util.Optional;
 @Repository
 public interface TypeRepository extends CrudRepository<Type, Long> {
 
-    // Recherche d'un type par son nom (insensible à la casse)
     Optional<Type> findByTypeNameIgnoreCase(String typeName);
 
-    // Tous les livres d'un type spécifique
     @Query("SELECT b FROM Book b WHERE b.type.typeId = :typeId")
     List<Book> findBooksByType(@Param("typeId") Long typeId);
 
-    // Optionnel : récupérer les types en fonction de leur association avec un genre
     @Query("SELECT t FROM Type t JOIN t.genres g WHERE g.genreId = :genreId")
     List<Type> findTypesByGenre(@Param("genreId") Long genreId);
 }

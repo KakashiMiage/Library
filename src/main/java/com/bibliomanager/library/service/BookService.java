@@ -43,7 +43,6 @@ public class BookService {
         this.genreRepository = genreRepository;
     }
 
-    // ➤ Create Book
     public Book createBook(Book book) {
 
         Author author = authorRepository.findById(book.getAuthor().getAuthorId())
@@ -74,18 +73,15 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-    // ➤ Find All Books
     public List<Book> findAllBooks() {
         return (List<Book>) bookRepository.findAll();
     }
 
-    // ➤ Get Book by ID
     public Book getBookById(Long bookId) {
         return bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book not found with id " + bookId));
     }
 
-    // ➤ Update Book
     public Book update(Long bookId, Book updatedBook) {
 
         Book existingBook = bookRepository.findById(bookId)

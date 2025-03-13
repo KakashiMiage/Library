@@ -24,7 +24,6 @@ public class Editor {
     @Column(nullable = false, unique = true, length = 14)
     private Long editorSIRET;
 
-    // ManyToMany relation avec Type
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinTable(
             name = "editor_types",

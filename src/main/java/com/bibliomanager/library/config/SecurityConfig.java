@@ -28,7 +28,6 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
 
-                        // PUBLIC (lecture uniquement)
                         .requestMatchers(HttpMethod.GET,
                                 "/api/books/**",
                                 "/api/authors/**",
@@ -39,16 +38,13 @@ public class SecurityConfig {
                                 "/api/reviews/**"
                         ).permitAll()
 
-                        // PUBLIC : création utilisateur (inscription)
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
-                        // READER et ADMIN (gestion reviews et favoris)
                         .requestMatchers(HttpMethod.POST, "/api/reviews").hasAnyRole("READER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/users/{userId}/favorites/**").hasAnyRole("READER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/{userId}/favorites/**").hasAnyRole("READER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/{userId}/favorites/**").hasAnyRole("READER", "ADMIN")
 
-                        // ADMIN uniquement pour CRUD (création, modif, suppression)
                         .requestMatchers(HttpMethod.POST,
                                 "/api/books/**",
                                 "/api/authors/**",
@@ -74,7 +70,6 @@ public class SecurityConfig {
                         ).hasRole("ADMIN")
 
 
-                        // JSF + ressources statiques publiques
                         .requestMatchers(
                                 "/login.xhtml", "/books.xhtml", "/authors.xhtml",
                                 "/genres.xhtml", "/types.xhtml", "/editors.xhtml",
@@ -82,7 +77,6 @@ public class SecurityConfig {
                                 "/javax.faces.resource/**"
                         ).permitAll()
 
-                        // Autres requêtes authentifiées
                         .anyRequest().authenticated()
                 )
                 .httpBasic();

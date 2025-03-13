@@ -12,21 +12,16 @@ import java.util.Optional;
 @Repository
 public interface EditorRepository extends CrudRepository<Editor, Long> {
 
-    // Recherche par nom exact (insensible à la casse)
     Optional<Editor> findByEditorNameIgnoreCase(String editorName);
 
-    // Recherche par siret exact
     Optional<Editor> findByEditorSIRET(Long editorSIRET);
 
-    // Liste des éditeurs par Type (N:M relation avec Type)
     @Query("SELECT e FROM Editor e JOIN e.types t WHERE t.typeId = :typeId")
     List<Editor> findEditorsByType(@Param("typeId") Long typeId);
 
-    // Liste des livres édités par cet éditeur
     @Query("SELECT b FROM Book b WHERE b.editor.editorId = :editorId")
     List<Book> findBooksByEditor(@Param("editorId") Long editorId);
 
-    // Recherche éditeurs par keyword (nom contient)
     @Query("SELECT e FROM Editor e WHERE LOWER(e.editorName) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Editor> searchEditors(@Param("keyword") String keyword);
 }

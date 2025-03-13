@@ -22,14 +22,11 @@ public class AuthService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        // Recherche de l'utilisateur en BDD
         User user = userRepository.findByUserUsernameIgnoreCase(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé : " + username));
 
-        // Log dev (tu peux l'enlever après)
         System.out.println("Authentification en cours pour l'utilisateur : " + username);
 
-        // Construction de l'objet UserDetails
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUserUsername())
                 .password("{noop}" + user.getUserPassword()) // {noop} -> pas de password encoder

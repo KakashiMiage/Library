@@ -48,7 +48,6 @@ public class Book {
     @JsonBackReference(value = "type-book")
     private Type type;
 
-    // ManyToMany avec Genre (relation N:M)
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinTable(
             name = "book_genres",

@@ -18,6 +18,5 @@ public interface AuthorRepository extends CrudRepository<Author, Long> {
     @Query("SELECT b FROM Book b WHERE b.author.authorId = :authorId")
     List<Book> findBooksByAuthor(@Param("authorId") Long authorId);
 
-    // Recherche d'auteurs par nom de famille uniquement
     List<Author> findByAuthorLastNameIgnoreCase(String lastName);
 }
