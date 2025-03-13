@@ -103,6 +103,8 @@ Make sure the backend is running just before.
 
 To access the frontend for the authors, go to the following address : **http://localhost:8080/authors.xhtml**
 
+Make sure to delete the database when switching from the Python test to the frontend test.
+
 ## API Endpoints
 Each entity has its own entry point accessible at :
 
@@ -224,6 +226,18 @@ The `AdminInitializer.java` file is responsible for creating a default administr
 - **Reader credentials :**
   - Username : `jdupont`
   - Password : `password123`
+  - Role : `READER`
+ 
+credentials in `DataInitializer.java` for python test :
+
+- **Admin credentials :**
+  - Username : `admin`
+  - Password : `admin123`
+  - Role : `ADMIN`
+  
+- **Reader credentials :**
+  - Username : `reader`
+  - Password : `reader123`
   - Role : `READER`
   
 If these users already exist in the database, no changes will be made.
