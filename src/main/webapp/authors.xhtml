@@ -45,13 +45,7 @@
                 #{author.authorLastName}
             </h:column>
             <h:column>
-                <f:facet name="header">Actions</f:facet>
-                <!-- Bouton pour éditer -->
-                <h:commandButton value="Éditer" action="#{authorView.loadSelectedAuthor()}" update="editForm">
-                    <f:setPropertyActionListener target="#{authorView.selectedAuthorId}" value="#{author.authorId}"/>
-                    <f:setPropertyActionListener target="#{authorView.selectedFirstName}" value="#{author.authorFirstName}"/>
-                    <f:setPropertyActionListener target="#{authorView.selectedLastName}" value="#{author.authorLastName}"/>
-                </h:commandButton>
+                <f:facet name="header">Action</f:facet>
 
                 <!-- Bouton pour supprimer -->
                 <h:commandButton value="Supprimer" action="#{authorView.deleteAuthor(author.authorId)}" update="authorForm">

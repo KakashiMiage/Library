@@ -59,21 +59,6 @@ public class AuthorView implements Serializable {
         }
     }
 
-    public void updateAuthor() {
-        if (selectedAuthorId != null && selectedFirstName != null && selectedLastName != null) {
-            System.out.println("Mise à jour de l'auteur ID: " + selectedAuthorId);
-            Author updatedAuthor = new Author();
-            updatedAuthor.setAuthorId(selectedAuthorId);
-            updatedAuthor.setAuthorFirstName(selectedFirstName);
-            updatedAuthor.setAuthorLastName(selectedLastName);
-            authorController.updateAuthor(selectedAuthorId, updatedAuthor);
-            refreshAuthors();
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Auteur mis à jour avec succès"));
-        } else {
-            System.out.println("Erreur : Informations incomplètes pour la mise à jour");
-        }
-    }
-
     public List<Author> getAuthors() {
         return authors;
     }
@@ -117,17 +102,6 @@ public class AuthorView implements Serializable {
 
     public void setSelectedAuthorId(Long selectedAuthorId) {
         this.selectedAuthorId = selectedAuthorId;
-    }
-
-    public void loadSelectedAuthor() {
-        System.out.println("Méthode loadSelectedAuthor appelée !");
-        System.out.println("Auteur ID: " + selectedAuthorId);
-    }
-
-    public void cancelEdit() {
-        this.selectedAuthorId = null;
-        this.selectedFirstName = "";
-        this.selectedLastName = "";
     }
 
 }
