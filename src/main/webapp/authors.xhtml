@@ -1,46 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:p="http://primefaces.org/ui">
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
 <h:head>
-    <title>Liste des Auteurs</title>
-    <h:outputStylesheet name="styles.css"/>
+    <title>Gestion des Auteurs</title>
+    <meta charset="UTF-8"/>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
 </h:head>
 <h:body>
-<h:form id="authorForm">
-    <p:dataTable value="#{authorView.authors}" var="author" styleClass="table">
-        <p:column headerText="ID">
-            <h:outputText value="#{author.authorId}"/>
-        </p:column>
-        <p:column headerText="Prénom">
-            <h:outputText value="#{author.authorFirstName}"/>
-        </p:column>
-        <p:column headerText="Nom">
-            <h:outputText value="#{author.authorLastName}"/>
-        </p:column>
-        <p:column headerText="Actions">
-            <p:commandButton value="Supprimer"
-                             icon="pi pi-trash"
-                             styleClass="ui-button-danger"
-                             actionListener="#{authorView.setSelectedAuthor(author)}"
-                             oncomplete="PF('deleteDialog').show()"/>
-        </p:column>
-    </p:dataTable>
-</h:form>
 
-<!-- Popup de confirmation -->
-<p:dialog header="Confirmation" widgetVar="deleteDialog" modal="true" showEffect="fade">
-    <h:form>
-        <p:outputLabel value="Voulez-vous vraiment supprimer cet auteur ?"/>
-        <br/><br/>
-        <p:commandButton value="Oui"
-                         icon="pi pi-check"
-                         action="#{authorView.deleteAuthor(authorView.selectedAuthor.authorId)}"
-                         update="authorForm"
-                         oncomplete="PF('deleteDialog').hide()"/>
-        <p:commandButton value="Non" icon="pi pi-times" onclick="PF('deleteDialog').hide()" type="button"/>
+    <h:form id="authorForm">
+        <h2>Liste des Auteurs</h2>
+        <h:dataTable value="#{authorView.authors}" var="author" border="1" style="width:100%;">
+            <h:column>
+                <f:facet name="header">ID</f:facet>
+                #{author.authorId}
+            </h:column>
+            <h:column>
+                <f:facet name="header">Prénom</f:facet>
+                #{author.authorFirstName}
+            </h:column>
+            <h:column>
+                <f:facet name="header">Nom</f:facet>
+                #{author.authorLastName}
+            </h:column>
+            <h:column>
+                <f:facet name="header">Action</f:facet>
+
+                <!-- Bouton pour supprimer -->
+                <h:commandButton value="Supprimer" action="#{authorView.deleteAuthor(author.authorId)}" update="authorForm">
+                    <f:ajax render="authorForm"/>
+                </h:commandButton>
+            </h:column>
+        </h:dataTable>
+
+        <h3>Ajouter un Auteur</h3>
+        <h:panelGrid columns="2">
+            <h:outputLabel for="newFirstName" value="Prénom:"/>
+            <h:inputText id="newFirstName" value="#{authorView.newFirstName}" required="true"/>
+            <h:outputLabel for="newLastName" value="Nom:"/>
+            <h:inputText id="newLastName" value="#{authorView.newLastName}" required="true"/>
+        </h:panelGrid>
+        <h:commandButton value="Ajouter" action="#{authorView.addAuthor}" update="authorForm"/>
     </h:form>
-</p:dialog>
+
+    <!-- Formulaire de modification -->
+    <h:form id="editForm" rendered="#{not empty authorView.selectedAuthorId}">
+        <h3>Modifier un Auteur</h3>
+        <h:panelGrid columns="2">
+            <h:outputLabel for="editFirstName" value="Prénom:"/>
+            <h:inputText id="editFirstName" value="#{authorView.selectedFirstName}" required="true"/>
+            <h:outputLabel for="editLastName" value="Nom:"/>
+            <h:inputText id="editLastName" value="#{authorView.selectedLastName}" required="true"/>
+        </h:panelGrid>
+
+        <!-- Stocke l'ID de l'auteur sélectionné -->
+        <h:inputHidden id="selectedAuthorId" value="#{authorView.selectedAuthorId}" />
+
+        <h:commandButton value="Sauvegarder" action="#{authorView.updateAuthor}" update="authorForm editForm"/>
+        <h:commandButton value="Annuler" action="#{authorView.cancelEdit}" immediate="true" update="editForm"/>
+    </h:form>
+
 </h:body>
 </html>
