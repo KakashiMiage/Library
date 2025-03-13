@@ -17,12 +17,11 @@ public class AuthorView implements Serializable {
 
     private List<Author> authors;
 
-    // Champs individuels pour l'ajout et la mise à jour
     private String newFirstName;
     private String newLastName;
     private String selectedFirstName;
     private String selectedLastName;
-    private Long selectedAuthorId; // ID de l'auteur sélectionné pour la mise à jour
+    private Long selectedAuthorId; 
 
     @Autowired
     private AuthorController authorController;
@@ -39,7 +38,7 @@ public class AuthorView implements Serializable {
     public void deleteAuthor(Long authorId) {
         if (authorId != null) {
             authorController.deleteAuthor(authorId);
-            refreshAuthors(); // Rafraîchir la liste
+            refreshAuthors(); 
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Auteur supprimé avec succès"));
         }
     }
@@ -63,7 +62,6 @@ public class AuthorView implements Serializable {
         return authors;
     }
 
-    // Getters et setters pour les nouveaux champs
     public String getNewFirstName() {
         return newFirstName;
     }
