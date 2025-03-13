@@ -23,9 +23,9 @@ public class AuthService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         User user = userRepository.findByUserUsernameIgnoreCase(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé : " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found : " + username));
 
-        System.out.println("Authentification en cours pour l'utilisateur : " + username);
+        System.out.println("User authentication in progress : " + username);
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUserUsername())

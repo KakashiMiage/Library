@@ -44,7 +44,6 @@ public class BookService {
     }
 
     public Book createBook(Book book) {
-
         Author author = authorRepository.findById(book.getAuthor().getAuthorId())
                 .orElseThrow(() -> new EntityNotFoundException("Author not found with id " + book.getAuthor().getAuthorId()));
 
@@ -83,7 +82,6 @@ public class BookService {
     }
 
     public Book update(Long bookId, Book updatedBook) {
-
         Book existingBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book not found with id " + bookId));
 
@@ -149,7 +147,6 @@ public class BookService {
         return bookRepository.findByTypeTypeId(typeId);
     }
 
-
     private String normalize(String input) {
         return Normalizer
         .normalize(input, Normalizer.Form.NFD)
@@ -161,7 +158,6 @@ public class BookService {
         String normalizedKeyword = normalize(keyword);
         return bookRepository.searchBooks(normalizedKeyword);
     }
-
 
     public List<Book> getBooksWithReviews() {
         return bookRepository.findByBookReviewsIsNotEmpty();

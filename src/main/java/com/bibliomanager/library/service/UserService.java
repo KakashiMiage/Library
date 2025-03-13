@@ -39,7 +39,7 @@ public class UserService {
 
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable avec l'id " + userId));
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id " + userId));
     }
 
     public User updateUser(Long userId, User updatedUser) {
@@ -62,14 +62,14 @@ public class UserService {
     public List<User> getUsersByName(String name) {
         List<User> users = userRepository.findByUserNameIgnoreCase(name);
         if (users.isEmpty()) {
-            throw new EntityNotFoundException("Aucun utilisateur trouvé avec le nom : " + name);
+            throw new EntityNotFoundException("No users found with the name : " + name);
         }
         return users;
     }
 
     public User getUserByUsername(String username) {
         return userRepository.findByUserUsernameIgnoreCase(username)
-                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé avec le username : " + username));
+                .orElseThrow(() -> new EntityNotFoundException("User not found with username : " + username));
     }
 
     public List<Review> getReviewsByUser(Long userId) {
@@ -85,7 +85,7 @@ public class UserService {
     public User addBookToFavorites(Long userId, Long bookId) {
         User user = getUserById(userId);
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new EntityNotFoundException("Livre introuvable avec l'id " + bookId));
+                .orElseThrow(() -> new EntityNotFoundException("Book not found with id " + bookId));
 
         user.getFavoriteBooks().add(book);
 
@@ -95,7 +95,7 @@ public class UserService {
     public User removeBookFromFavorites(Long userId, Long bookId) {
         User user = getUserById(userId);
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new EntityNotFoundException("Livre introuvable avec l'id " + bookId));
+                .orElseThrow(() -> new EntityNotFoundException("Book not found with id " + bookId));
 
         user.getFavoriteBooks().remove(book);
 
@@ -106,5 +106,4 @@ public class UserService {
         User user = getUserById(userId);
         return user.getFavoriteBooks();
     }
-
 }

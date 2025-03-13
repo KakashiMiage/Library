@@ -27,19 +27,17 @@ public class EditorService {
         this.typeRepository = typeRepository;
     }
 
-
-
     public Editor createEditor(Editor editor) {
         List<Type> completeTypes = new ArrayList<>();
 
         if (editor.getTypes() != null && !editor.getTypes().isEmpty()) {
             for (Type type : editor.getTypes()) {
                 if (type.getTypeId() == null) {
-                    throw new IllegalArgumentException("Le typeId ne peut pas être null");
+                    throw new IllegalArgumentException("The typeId cannot be null");
                 }
 
                 Type loadedType = typeRepository.findById(type.getTypeId())
-                        .orElseThrow(() -> new EntityNotFoundException("Type non trouvé avec l'id " + type.getTypeId()));
+                        .orElseThrow(() -> new EntityNotFoundException("Type not found with id : " + type.getTypeId()));
                 completeTypes.add(loadedType);
             }
         }
@@ -59,11 +57,11 @@ public class EditorService {
         if (updatedEditor.getTypes() != null && !updatedEditor.getTypes().isEmpty()) {
             for (Type type : updatedEditor.getTypes()) {
                 if (type.getTypeId() == null) {
-                    throw new IllegalArgumentException("Le typeId ne peut pas être null");
+                    throw new IllegalArgumentException("The typeId cannot be null");
                 }
 
                 Type loadedType = typeRepository.findById(type.getTypeId())
-                        .orElseThrow(() -> new EntityNotFoundException("Type non trouvé avec l'id " + type.getTypeId()));
+                        .orElseThrow(() -> new EntityNotFoundException("Type not found with id " + type.getTypeId()));
                 completeTypes.add(loadedType);
             }
         }
@@ -88,17 +86,17 @@ public class EditorService {
 
     public Editor getEditorById(Long editorId) {
         return editorRepository.findById(editorId)
-                .orElseThrow(() -> new EntityNotFoundException("Éditeur introuvable avec l'id " + editorId));
+                .orElseThrow(() -> new EntityNotFoundException("Editor not found with id : " + editorId));
     }
 
     public Editor getEditorByName(String editorName) {
         return editorRepository.findByEditorNameIgnoreCase(editorName)
-                .orElseThrow(() -> new EntityNotFoundException("Éditeur non trouvé avec le nom : " + editorName));
+                .orElseThrow(() -> new EntityNotFoundException("Editor not found with name : " + editorName));
     }
 
     public Editor getEditorBySiret(Long editorSiret) {
         return editorRepository.findByEditorSIRET(editorSiret)
-                .orElseThrow(() -> new EntityNotFoundException("Éditeur non trouvé avec le siret : " + editorSiret));
+                .orElseThrow(() -> new EntityNotFoundException("Editor not found with siret : " + editorSiret));
     }
 
     public List<Editor> getEditorsByType(Long typeId) {

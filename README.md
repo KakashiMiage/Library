@@ -25,8 +25,7 @@ The project is organized into several folders:
 
 - **src/main/resources/**: Contains configuration files and the SQLite database (`dataLibrary.db`).
 
-- **src/main/webapp/**: Folder for the frontend. It includes files such as `authors.xhtml` for displaying
-  display authors and `WEB-INF/` for web configurations.
+- **src/main/webapp/**: Attempt for the frontend, for example with `authors.xhtml` for displaying authors.
 
 - **pom.xml**: This is the file linked to Maven, used to manage dependencies.
 
@@ -102,18 +101,108 @@ and to create database entries.
 The `AdminInitializer.java` file in the **config** folder must be commented.
 Make sure the backend is running just before.
 
-To access the frontend, go to the following address : **http://localhost:8080/authors.xhtml**
+To access the frontend for the authors, go to the following address : **http://localhost:8080/authors.xhtml**
 
 ## API Endpoints
 Each entity has its own entry point accessible at :
 
-- **Authors :** `/api/authors`
-- **Books :** `/api/books`
-- **Editors :** `/api/editors`
-- **Genres :** `/api/genres`
-- **Reviews :** `/api/reviews`
-- **Types :** `/api/types`
-- **Users :** `/api/users`
+| **Entity**    | **Api endpoint** |
+|---------------|-----------------:|
+| **Authors**   |   `/api/authors` |
+| **Books**     |     `/api/books` |
+| **Editors**   |   `/api/editors` |
+| **Genres**    |    `/api/genres` |
+| **Reviews**   |   `/api/reviews` |
+| **Types**     |     `/api/types` |
+| **Users**     |     `/api/users` |
+
+### Authors
+- GET /api/authors → Get all authors
+- GET /api/authors/{id} → Get author by ID
+- POST /api/authors → Create a new author
+- PUT /api/authors/{id} → Update an author
+- DELETE /api/authors/{id} → Delete an author
+- GET /api/authors/count → Get total count of authors
+- GET /api/authors/search/fullname → Search author by first and last name
+- GET /api/authors/search/lastname/{lastName} → Search authors by last name
+- GET /api/authors/{id}/books → Get books by an author
+
+### Books
+- GET /api/books → Get all books
+- GET /api/books/{id} → Get book by ID
+- POST /api/books → Create a book
+- PUT /api/books/{id} → Update a book
+- DELETE /api/books/{id} → Delete a book
+- GET /api/books/count → Get total count of books
+- GET /api/books/search/title → Search books by title
+- GET /api/books/search/author/{authorId} → Get books by author ID
+- GET /api/books/search/genre/{genreId} → Get books by genre ID
+- GET /api/books/search/editor/{editorId} → Get books by editor ID
+- GET /api/books/search/type/{typeId} → Get books by type ID
+- GET /api/books/search/keyword → Search books by keyword
+- GET /api/books/reviews/not-empty → Get books with reviews
+- GET /api/books/top-rated → Get top-rated books (min rating required)
+
+### Editors
+- GET /api/editors → Get all editors
+- GET /api/editors/{id} → Get editor by ID
+- POST /api/editors → Create an editor
+- PUT /api/editors/{id} → Update an editor
+- DELETE /api/editors/{id} → Delete an editor
+- GET /api/editors/count → Get total count of editors
+- GET /api/editors/search/name → Search editor by name
+- GET /api/editors/search/siret → Search editor by SIRET number
+- GET /api/editors/search/type/{typeId} → Get editors by type
+- GET /api/editors/{id}/books → Get books by an editor
+- GET /api/editors/search → Search editors by keyword
+
+### Genres
+- GET /api/genres → Get all genres
+- GET /api/genres/{id} → Get genre by ID
+- POST /api/genres → Create a genre
+- PUT /api/genres/{id} → Update a genre
+- DELETE /api/genres/{id} → Delete a genre
+- GET /api/genres/count → Get total count of genres
+- GET /api/genres/search → Search genre by name
+- GET /api/genres/{id}/books → Get books by genre
+
+### Reviews
+- GET /api/reviews → Get all reviews
+- GET /api/reviews/{id} → Get review by ID
+- POST /api/reviews → Create a review
+- PUT /api/reviews/{id} → Update a review
+- DELETE /api/reviews/{id} → Delete a review
+- GET /api/reviews/count → Get total count of reviews
+- GET /api/reviews/book/{bookId} → Get reviews for a book
+- GET /api/reviews/user/{userId} → Get reviews by a reader
+- GET /api/reviews/book/{bookId}/average-rating → Get average rating of a book
+- GET /api/reviews/top-rated → Get top-rated books (min rating required)
+
+### Types
+- GET /api/types → Get all types
+- GET /api/types/{id} → Get type by ID
+- POST /api/types → Create a type
+- PUT /api/types/{id} → Update a type
+- DELETE /api/types/{id} → Delete a type
+- GET /api/types/count → Get total count of types
+- GET /api/types/search/name → Search type by name
+- GET /api/types/{id}/books → Get books by type
+- GET /api/types/search/genre/{genreId} → Get types by genre
+
+### Users
+- GET /api/users → Get all users
+- GET /api/users/{id} → Get user by ID
+- POST /api/users → Create a user
+- PUT /api/users/{id} → Update a user
+- DELETE /api/users/{id} → Delete a user
+- GET /api/users/count → Get total count of users
+- GET /api/users/search/name → Search users by name
+- GET /api/users/search/username → Search user by username
+- GET /api/users/{id}/reviews → Get reviews written by a user
+- GET /api/users/{id}/books-reviewed → Get books reviewed by a user
+- PUT /api/users/{userId}/favorites/{bookId} → Add a book to user's favorites
+- DELETE /api/users/{userId}/favorites/{bookId} → Remove a book from user's favorites
+- GET /api/users/{userId}/favorites → Get a user's favorite books
 
 ## Authentication
 

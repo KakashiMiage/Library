@@ -59,7 +59,7 @@ public class ReviewService {
 
     public Review getReviewById(Long reviewId) {
         return reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new EntityNotFoundException("Review introuvable avec l'id " + reviewId));
+                .orElseThrow(() -> new EntityNotFoundException("Review not found with id " + reviewId));
     }
 
     public Review updateReview(Long reviewId, Review updatedReview) {
@@ -70,13 +70,13 @@ public class ReviewService {
 
         if (updatedReview.getUser() != null) {
             User user = userRepository.findById(updatedReview.getUser().getUserId())
-                    .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable avec l'id " + updatedReview.getUser().getUserId()));
+                    .orElseThrow(() -> new EntityNotFoundException("User not found with id " + updatedReview.getUser().getUserId()));
             existingReview.setUser(user);
         }
 
         if (updatedReview.getBook() != null) {
             Book book = bookRepository.findById(updatedReview.getBook().getIsbn())
-                    .orElseThrow(() -> new EntityNotFoundException("Livre introuvable avec l'id " + updatedReview.getBook().getIsbn()));
+                    .orElseThrow(() -> new EntityNotFoundException("Book not found with id " + updatedReview.getBook().getIsbn()));
             existingReview.setBook(book);
         }
 
@@ -99,7 +99,7 @@ public class ReviewService {
     public Double getAverageRatingForBook(Long bookId) {
         Double average = reviewRepository.getAverageRatingForBook(bookId);
         if (average == null) {
-            throw new EntityNotFoundException("Aucune review trouvée pour le livre avec l'id " + bookId);
+            throw new EntityNotFoundException("No review found for the book with id " + bookId);
         }
         return average;
     }

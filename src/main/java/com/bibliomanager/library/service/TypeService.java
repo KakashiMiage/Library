@@ -33,7 +33,7 @@ public class TypeService {
 
     public Type getTypeById(Long typeId) {
         return typeRepository.findById(typeId)
-                .orElseThrow(() -> new EntityNotFoundException("Type introuvable avec l'id " + typeId));
+                .orElseThrow(() -> new EntityNotFoundException("Type not found with id " + typeId));
     }
 
     public Type updateType(Long typeId, Type updatedType) {
@@ -51,11 +51,11 @@ public class TypeService {
 
     public Type findTypeByName(String typeName) {
         return typeRepository.findByTypeNameIgnoreCase(typeName)
-                .orElseThrow(() -> new EntityNotFoundException("Type non trouvé avec le nom : " + typeName));
+                .orElseThrow(() -> new EntityNotFoundException("Type not found with name : " + typeName));
     }
 
     public List<Book> getBooksByType(Long typeId) {
-        getTypeById(typeId); // Vérifie que le type existe
+        getTypeById(typeId);
         return typeRepository.findBooksByType(typeId);
     }
 

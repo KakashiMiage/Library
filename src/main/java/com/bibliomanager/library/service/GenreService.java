@@ -33,7 +33,7 @@ public class GenreService {
 
     public Genre getGenreById(Long genreId) {
         return genreRepository.findById(genreId)
-                .orElseThrow(() -> new EntityNotFoundException("Genre introuvable avec l'id " + genreId));
+                .orElseThrow(() -> new EntityNotFoundException("Genre not found with id " + genreId));
     }
 
     public Genre updateGenre(Long genreId, Genre updatedGenre) {
@@ -51,11 +51,11 @@ public class GenreService {
 
     public Genre findGenreByName(String genreName) {
         return genreRepository.findByGenreNameIgnoreCase(genreName)
-                .orElseThrow(() -> new EntityNotFoundException("Genre non trouvé avec le nom : " + genreName));
+                .orElseThrow(() -> new EntityNotFoundException("Genre not found with name : " + genreName));
     }
 
     public List<Book> getBooksByGenre(Long genreId) {
-        getGenreById(genreId); // Vérifie que le genre existe
+        getGenreById(genreId);
         return genreRepository.findBooksByGenre(genreId);
     }
 }

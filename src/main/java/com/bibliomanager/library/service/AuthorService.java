@@ -33,7 +33,7 @@ public class AuthorService {
 
     public Author getAuthorById(Long authorId) {
         return authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Auteur introuvable avec l'id " + authorId));
+                .orElseThrow(() -> new EntityNotFoundException("Author not found with id" + authorId));
     }
 
     public Author updateAuthor(Long authorId, Author updatedAuthor) {
@@ -52,11 +52,11 @@ public class AuthorService {
 
     public Author getAuthorByName(String firstName, String lastName) {
         return authorRepository.findByFullName(firstName, lastName)
-                .orElseThrow(() -> new EntityNotFoundException("Auteur non trouvé avec le nom : " + firstName + " " + lastName));
+                .orElseThrow(() -> new EntityNotFoundException("Author not found with name : " + firstName + " " + lastName));
     }
 
     public List<Book> getBooksByAuthor(Long authorId) {
-        getAuthorById(authorId); // Vérification que l'auteur existe
+        getAuthorById(authorId);
         return authorRepository.findBooksByAuthor(authorId);
     }
 
@@ -64,9 +64,8 @@ public class AuthorService {
         List<Author> authors = authorRepository.findByAuthorLastNameIgnoreCase(lastName);
 
         if (authors.isEmpty()) {
-            throw new EntityNotFoundException("Aucun auteur trouvé avec le nom de famille : " + lastName);
+            throw new EntityNotFoundException("No author found with the lastname : " + lastName);
         }
-
         return authors;
     }
 }
