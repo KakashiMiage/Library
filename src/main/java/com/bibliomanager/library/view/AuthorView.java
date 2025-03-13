@@ -1,7 +1,7 @@
 package com.bibliomanager.library.view;
 
+import com.bibliomanager.library.controller.AuthorController;
 import com.bibliomanager.library.model.Author;
-import com.bibliomanager.library.service.AuthorService;
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
@@ -16,36 +16,118 @@ import java.util.List;
 public class AuthorView implements Serializable {
 
     private List<Author> authors;
-    private Author selectedAuthor;
+
+    // Champs individuels pour l'ajout et la mise à jour
+    private String newFirstName;
+    private String newLastName;
+    private String selectedFirstName;
+    private String selectedLastName;
+    private Long selectedAuthorId; // ID de l'auteur sélectionné pour la mise à jour
 
     @Autowired
-    private AuthorService authorService;
+    private AuthorController authorController;
 
     @PostConstruct
     public void init() {
-        authors = authorService.findAllAuthors();
+        refreshAuthors();
+    }
+
+    public void refreshAuthors() {
+        authors = authorController.getAllAuthors().getBody();
+    }
+
+    public void deleteAuthor(Long authorId) {
+        if (authorId != null) {
+            authorController.deleteAuthor(authorId);
+            refreshAuthors(); // Rafraîchir la liste
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Auteur supprimé avec succès"));
+        }
+    }
+
+    public void addAuthor() {
+        if (newFirstName != null && !newFirstName.isEmpty() && newLastName != null && !newLastName.isEmpty()) {
+            Author newAuthor = new Author();
+            newAuthor.setAuthorFirstName(newFirstName);
+            newAuthor.setAuthorLastName(newLastName);
+            authorController.createAuthor(newAuthor);
+            newFirstName = "";
+            newLastName = "";
+            refreshAuthors();
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Author added"));
+        } else {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Error", "First name and last name are required"));
+        }
+    }
+
+    public void updateAuthor() {
+        if (selectedAuthorId != null && selectedFirstName != null && selectedLastName != null) {
+            System.out.println("Mise à jour de l'auteur ID: " + selectedAuthorId);
+            Author updatedAuthor = new Author();
+            updatedAuthor.setAuthorId(selectedAuthorId);
+            updatedAuthor.setAuthorFirstName(selectedFirstName);
+            updatedAuthor.setAuthorLastName(selectedLastName);
+            authorController.updateAuthor(selectedAuthorId, updatedAuthor);
+            refreshAuthors();
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Auteur mis à jour avec succès"));
+        } else {
+            System.out.println("Erreur : Informations incomplètes pour la mise à jour");
+        }
     }
 
     public List<Author> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(List<Author> authors) {
-        this.authors = authors;
+    // Getters et setters pour les nouveaux champs
+    public String getNewFirstName() {
+        return newFirstName;
     }
 
-    public Author getSelectedAuthor() {
-        return selectedAuthor;
+    public void setNewFirstName(String newFirstName) {
+        this.newFirstName = newFirstName;
     }
 
-    public void setSelectedAuthor(Author selectedAuthor) {
-        this.selectedAuthor = selectedAuthor;
+    public String getNewLastName() {
+        return newLastName;
     }
 
-    public void deleteAuthor(Long authorId) {
-        authorService.deleteAuthor(authorId);
-        authors = authorService.findAllAuthors();
-        FacesMessage msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Author deleted", "ID: " + authorId);
-        FacesContext.getCurrentInstance().addMessage(null, msg);
+    public void setNewLastName(String newLastName) {
+        this.newLastName = newLastName;
     }
+
+    public String getSelectedFirstName() {
+        return selectedFirstName;
+    }
+
+    public void setSelectedFirstName(String selectedFirstName) {
+        this.selectedFirstName = selectedFirstName;
+    }
+
+    public String getSelectedLastName() {
+        return selectedLastName;
+    }
+
+    public void setSelectedLastName(String selectedLastName) {
+        this.selectedLastName = selectedLastName;
+    }
+
+    public Long getSelectedAuthorId() {
+        return selectedAuthorId;
+    }
+
+    public void setSelectedAuthorId(Long selectedAuthorId) {
+        this.selectedAuthorId = selectedAuthorId;
+    }
+
+    public void loadSelectedAuthor() {
+        System.out.println("Méthode loadSelectedAuthor appelée !");
+        System.out.println("Auteur ID: " + selectedAuthorId);
+    }
+
+    public void cancelEdit() {
+        this.selectedAuthorId = null;
+        this.selectedFirstName = "";
+        this.selectedLastName = "";
+    }
+
 }
