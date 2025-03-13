@@ -47,7 +47,6 @@
             <h:column>
                 <f:facet name="header">Action</f:facet>
 
-                <!-- Bouton pour supprimer -->
                 <h:commandButton value="Supprimer" action="#{authorView.deleteAuthor(author.authorId)}" update="authorForm">
                     <f:ajax render="authorForm"/>
                 </h:commandButton>
@@ -64,7 +63,6 @@
         <h:commandButton value="Ajouter" action="#{authorView.addAuthor}" update="authorForm"/>
     </h:form>
 
-    <!-- Formulaire de modification -->
     <h:form id="editForm" rendered="#{not empty authorView.selectedAuthorId}">
         <h3>Modifier un Auteur</h3>
         <h:panelGrid columns="2">
@@ -74,7 +72,6 @@
             <h:inputText id="editLastName" value="#{authorView.selectedLastName}" required="true"/>
         </h:panelGrid>
 
-        <!-- Stocke l'ID de l'auteur sélectionné -->
         <h:inputHidden id="selectedAuthorId" value="#{authorView.selectedAuthorId}" />
 
         <h:commandButton value="Sauvegarder" action="#{authorView.updateAuthor}" update="authorForm editForm"/>
